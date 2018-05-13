@@ -1,9 +1,6 @@
 #![allow(dead_code)]
 extern crate rand;
-extern crate rug;
 use self::rand::Rng;
-use self::rug::Integer;
-use big_primes;
 
 pub fn ninja_factor(n: i64) -> (i64, i64) {
     let mut s = 0;

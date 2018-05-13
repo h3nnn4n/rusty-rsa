@@ -3,6 +3,7 @@ extern crate rand;
 extern crate rug;
 use self::rand::Rng;
 use self::rug::ops::Pow;
+#[allow(unused_imports)]
 use self::rug::rand::RandState;
 use self::rug::Integer;
 

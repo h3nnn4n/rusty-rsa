@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 extern crate rand;
 extern crate rug;
 use self::rand::Rng;
