@@ -1,9 +1,65 @@
 extern crate rug;
-use self::rug::ops::Pow;
-use self::rug::rand::RandState;
+use self::rug::integer::Order;
 use self::rug::Integer;
+use std::fs::File;
+use std::io::Read;
+use std::io::Write;
 
 use big_primes;
+
+pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_bits: i64) {
+    let mut file = File::open(path).unwrap();
+    let mut buffer = [0_u8; 2];
+
+    let mut out_file = File::create(out).unwrap();
+
+    loop {
+        let bytes_read = file.read(&mut buffer).unwrap();
+        if bytes_read <= 0 {
+            break;
+        }
+
+        if bytes_read == 1 {
+            buffer[1] = 0;
+        }
+
+        println!("Wrote {} bytes: {:?}", bytes_read, buffer);
+        let i = Integer::from_digits(&buffer, Order::Lsf);
+
+        let c = decrypt_(priv_key.clone(), i.clone());
+
+        let digits = c.to_digits::<u8>(Order::Lsf);
+
+        out_file.write(&digits);
+    }
+}
+
+pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bits: i64) {
+    let mut file = File::open(path).unwrap();
+    let mut buffer = [0_u8; 2];
+
+    let mut out_file = File::create(out).unwrap();
+
+    loop {
+        let bytes_read = file.read(&mut buffer).unwrap();
+        if bytes_read <= 0 {
+            break;
+        }
+
+        if bytes_read == 1 {
+            buffer[1] = 0;
+        }
+
+        println!("Read {} bytes: {:?}", bytes_read, buffer);
+        let i = Integer::from_digits(&buffer, Order::Lsf);
+
+        let c = encrypt_(pub_key.clone(), i.clone());
+
+        let digits = c.to_digits::<u8>(Order::Lsf);
+
+        out_file.write(&digits);
+    }
+}
 
 fn mod_inv(a: Integer, module: Integer) -> Integer {
     let mut mn = (module.clone(), a.clone());

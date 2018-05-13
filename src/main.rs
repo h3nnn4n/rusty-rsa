@@ -4,5 +4,20 @@ mod rsa;
 mod tests;
 
 fn main() {
-    let (private, public) = rsa::get_key(10);
+    let n_bits = 16;
+    let (private, public) = rsa::get_key(n_bits);
+
+    rsa::encrypt_file(
+        "test".to_string(),
+        "test.enc".to_string(),
+        public.clone(),
+        n_bits,
+    );
+
+    rsa::decrypt_file(
+        "test.enc".to_string(),
+        "test.dec".to_string(),
+        private.clone(),
+        n_bits,
+    );
 }
