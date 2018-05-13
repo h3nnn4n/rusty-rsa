@@ -49,13 +49,17 @@ mod tests {
 
     #[test]
     fn encrypt_decrypt() {
-        let (private, public) = super::get_key(64);
-        let m = big_primes::get_prime_with_n_bits(32);
+        for _ in 0..10 {
+            let (private, public) = super::get_key(64);
+            for _ in 0..10 {
+                let m = big_primes::get_prime_with_n_bits(60);
 
-        let c = encrypt_(public, m.clone());
-        let m2 = decrypt_(private, c);
+                let c = encrypt_(public.clone(), m.clone());
+                let m2 = decrypt_(private.clone(), c);
 
-        assert_eq!(m, m2);
+                assert_eq!(m, m2);
+            }
+        }
     }
 
     #[test]
