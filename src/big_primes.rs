@@ -89,10 +89,34 @@ pub fn count_primes(upper: i64) -> i64 {
 
     for n in 2..upper {
         if is_prime(Integer::from(n), k) {
-            println!("{}", n);
             total += 1
         }
     }
 
     total
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn primes_less_than_10() {
+        assert!(count_primes(10) == 4);
+    }
+
+    #[test]
+    fn primes_less_than_100() {
+        assert!(count_primes(100) == 25);
+    }
+
+    #[test]
+    fn primes_less_than_1000() {
+        assert!(count_primes(1000) == 168);
+    }
+
+    #[test]
+    fn primes_less_than_10000() {
+        assert!(count_primes(10000) == 1229);
+    }
 }
