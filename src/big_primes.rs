@@ -3,7 +3,7 @@
 //extern crate rand;
 extern crate rug;
 //use self::rand::Rng;
-//use self::rug::rand::RandState;
+use self::rug::rand::RandState;
 use self::rug::Integer;
 
 fn ninja_factor(n: Integer) -> (Integer, Integer) {
@@ -60,40 +60,40 @@ fn miller_rabin(n: Integer, s: Integer, d: Integer, a: Integer) -> bool {
     return if y == 1 { true } else { false };
 }
 
-//pub fn is_prime(n: Integer, k: i64) -> bool {
-//if (n % 2 == 0 && n != 2) || (n < 2) {
-//return false;
-//}
-//if n <= 3 {
-//return true;
-//}
+pub fn is_prime(n: Integer, k: i64) -> bool {
+    if (Integer::from(&n % 2) == 0 && Integer::from(&n) != 2) || Integer::from(&n) < 2 {
+        return false;
+    }
+    if Integer::from(&n) <= 3 {
+        return true;
+    }
 
-//let mut rng = rand::thread_rng();
-///////
-////let (s, d) = ninja_factor(n);
-///////
-//let mut ss = Integer::from(0);
-//let mut dd: Integer = n - 1;
+    //let mut rng = rand::thread_rng();
+    /////
+    let (s, d) = ninja_factor(n.clone());
+    /////
+    //let mut ss = Integer::from(0);
+    //let mut dd: Integer = n - 1;
 
-//while dd % 2 == 0 {
-//dd /= 2;
-//ss += 1;
-//}
+    //while dd % 2 == 0 {
+    //dd /= 2;
+    //ss += 1;
+    //}
 
-//let (s, d) = (ss.clone(), dd.clone());
-////(s, d)
-///////
+    //let (s, d) = (ss.clone(), dd.clone());
+    //(s, d)
+    /////
 
-//for _ in 0..k {
-//let mut rand = RandState::new();
-//let a = 2 + (rand.bits(32) % (n - 4));
-//if !miller_rabin(n.clone(), s.clone(), d.clone(), a) {
-//return false;
-//}
-//}
+    for _ in 0..k {
+        let mut rand = RandState::new();
+        let a = 2 + (rand.bits(32) % (Integer::from(&n - 4)));
+        if !miller_rabin(n.clone(), s.clone(), d.clone(), a) {
+            return false;
+        }
+    }
 
-//true
-//}
+    true
+}
 
 //pub fn is_prime_str(s: String, k: i64) -> bool {
 //let nn = s.parse::<Integer>().unwrap();
