@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-
 extern crate rand;
 use self::rand::Rng;
 

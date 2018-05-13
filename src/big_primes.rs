@@ -1,8 +1,5 @@
 #![allow(dead_code)]
-
-//extern crate rand;
 extern crate rug;
-//use self::rand::Rng;
 use self::rug::rand::RandState;
 use self::rug::Integer;
 
@@ -68,21 +65,7 @@ pub fn is_prime(n: Integer, k: i64) -> bool {
         return true;
     }
 
-    //let mut rng = rand::thread_rng();
-    /////
     let (s, d) = ninja_factor(n.clone());
-    /////
-    //let mut ss = Integer::from(0);
-    //let mut dd: Integer = n - 1;
-
-    //while dd % 2 == 0 {
-    //dd /= 2;
-    //ss += 1;
-    //}
-
-    //let (s, d) = (ss.clone(), dd.clone());
-    //(s, d)
-    /////
 
     for _ in 0..k {
         let mut rand = RandState::new();
@@ -95,20 +78,21 @@ pub fn is_prime(n: Integer, k: i64) -> bool {
     true
 }
 
-//pub fn is_prime_str(s: String, k: i64) -> bool {
-//let nn = s.parse::<Integer>().unwrap();
-//return is_prime(nn, k);
-//}
+pub fn is_prime_str(s: String, k: i64) -> bool {
+    let nn = s.parse::<Integer>().unwrap();
+    return is_prime(nn, k);
+}
 
-//pub fn count_primes(upper: i64) -> i64 {
-//let mut total = 0;
-//let k = 10;
+pub fn count_primes(upper: i64) -> i64 {
+    let mut total = 0;
+    let k = 10;
 
-//for n in 2..upper {
-//if is_prime(Integer::from(n), k) {
-//total += 1
-//}
-//}
+    for n in 2..upper {
+        if is_prime(Integer::from(n), k) {
+            println!("{}", n);
+            total += 1
+        }
+    }
 
-//total
-//}
+    total
+}
