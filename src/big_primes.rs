@@ -1,11 +1,12 @@
 #![allow(dead_code)]
 extern crate rug;
+use self::rug::ops::Pow;
 use self::rug::rand::RandState;
 use self::rug::Integer;
 
-fn ninja_factor(n: Integer) -> (Integer, Integer) {
+pub fn ninja_factor(n: Integer) -> (Integer, Integer) {
     let mut s = Integer::from(0);
-    let mut d: Integer = n - 1;
+    let mut d: Integer = n.clone() - 1;
 
     loop {
         if Integer::from(&d % 2) != 0 {
@@ -16,20 +17,25 @@ fn ninja_factor(n: Integer) -> (Integer, Integer) {
         s = Integer::from(&s + 1);
     }
 
+    let b = Integer::from(2);
+    let e: u32 = s.to_u32().unwrap();
+    let p = b.pow(e);
+    assert_eq!(Integer::from(&p * &d), Integer::from(&n - 1));
     (s, d)
 }
 
-fn power(a: Integer, n: Integer, m: Integer) -> Integer {
+pub fn power(a: Integer, n: Integer, m: Integer) -> Integer {
     let mut nn = n;
     let mut power = a;
     let mut result = Integer::from(1);
 
     loop {
-        if Integer::from(&nn % 2) == 0 {
+        if nn.clone() <= 0 {
             break;
         }
+
         if Integer::from(&nn % 2) == 1 {
-            result = Integer::from(Integer::from(&result * &result) % &m);
+            result = Integer::from(Integer::from(&result * &power) % &m);
         }
 
         power = Integer::from(Integer::from(&power * &power) % &m);
