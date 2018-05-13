@@ -19,7 +19,7 @@ use self::rug::Integer;
 //(s, d)
 //}
 
-fn power_(a: Integer, n: Integer, m: Integer) -> Integer {
+fn power(a: Integer, n: Integer, m: Integer) -> Integer {
     let mut nn = n;
     let mut power = a;
     let mut result = Integer::from(1);
@@ -29,50 +29,33 @@ fn power_(a: Integer, n: Integer, m: Integer) -> Integer {
             break;
         }
         if Integer::from(&nn % 2) == 1 {
-            let result = Integer::from(Integer::from(&result * &result) % &m);
+            result = Integer::from(Integer::from(&result * &result) % &m);
         }
 
-        let power = Integer::from(Integer::from(&power * &power) % &m);
+        power = Integer::from(Integer::from(&power * &power) % &m);
 
-        let nn = Integer::from(&nn >> 1);
+        nn = Integer::from(&nn >> 1);
     }
 
     result
 }
 
-//fn power(a: Integer, n: Integer, m: Integer) -> Integer {
-//let mut nn = n;
-//let mut power = a;
-//let mut result = Integer::from(1);
+fn miller_rabin(n: Integer, s: Integer, d: Integer, a: Integer) -> bool {
+    let mut x = power(a, d, n.clone());
+    let mut y = Integer::from(0);
 
-//while nn > 0 {
-//if nn % 2 == 1 {
-//result = (result * power) % m;
-//}
+    let mut _r = s;
+    while _r > 0 {
+        y = power(x.clone(), Integer::from(2), n.clone());
+        if y == 1 && x != 1 && x != Integer::from(&n - 1) {
+            return false;
+        }
+        x = Integer::from(&y);
+        _r = Integer::from(&_r - 1);
+    }
 
-//power = (power * power) % m;
-//nn >>= 1;
-//}
-
-//result
-//}
-
-//fn miller_rabin(n: Integer, s: Integer, d: Integer, a: Integer) -> bool {
-//let mut x = power(a, d, n);
-//let mut y = Integer::from(0);
-
-//let mut _r = s;
-//while _r > 0 {
-//y = power(x, Integer::from(2), n);
-//if y == 1 && x != 1 && x != n - 1 {
-//return false;
-//}
-//x = y;
-//_r -= 1;
-//}
-
-//return if y == 1 { true } else { false };
-//}
+    return if y == 1 { true } else { false };
+}
 
 //pub fn is_prime(n: Integer, k: i64) -> bool {
 //if (n % 2 == 0 && n != 2) || (n < 2) {
