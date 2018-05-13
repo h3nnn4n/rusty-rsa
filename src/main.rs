@@ -4,5 +4,5 @@ mod rsa;
 mod tests;
 
 fn main() {
-    rsa::get_pq(10);
+    let (private, public) = rsa::get_key(10);
 }

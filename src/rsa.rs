@@ -24,19 +24,41 @@ fn mod_inv(a: Integer, module: Integer) -> Integer {
     xy.0
 }
 
-pub fn get_pq(n_bits: i64) -> (i64, i64) {
+pub fn encrypt_((e, n): (Integer, Integer), m: Integer) -> Integer {
+    //m.pow(e) % n
+    Integer::from(0)
+}
+
+pub fn decrypt_((d, n): (Integer, Integer), m: Integer) -> Integer {
+    //m.pow(d) % n
+    Integer::from(0)
+}
+
+pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
     let p = big_primes::get_prime_with_n_bits(n_bits / 2);
     let q = big_primes::get_prime_with_n_bits(n_bits / 2);
     let n = Integer::from(&p * &q);
     let tot = Integer::from(Integer::from(&p - 1) * Integer::from(&q - 1));
     let e = big_primes::get_prime_with_n_bits(8);
     let d = mod_inv(e.clone(), tot.clone());
-    (10, 10)
+
+    ((d, n.clone()), (e, n))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn encrypt_decrypt() {
+        let (private, public) = super::get_key(64);
+        let m = big_primes::get_prime_with_n_bits(32);
+
+        let c = encrypt_(public, m.clone());
+        let m2 = decrypt_(private, c);
+
+        assert_eq!(m, m2);
+    }
 
     #[test]
     fn mod_inv() {
