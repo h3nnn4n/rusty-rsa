@@ -25,13 +25,11 @@ fn mod_inv(a: Integer, module: Integer) -> Integer {
 }
 
 pub fn encrypt_((e, n): (Integer, Integer), m: Integer) -> Integer {
-    //m.pow(e) % n
-    Integer::from(0)
+    m.pow_mod(&e, &n).unwrap()
 }
 
 pub fn decrypt_((d, n): (Integer, Integer), m: Integer) -> Integer {
-    //m.pow(d) % n
-    Integer::from(0)
+    m.pow_mod(&d, &n).unwrap()
 }
 
 pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
