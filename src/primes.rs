@@ -52,6 +52,15 @@ fn miller_rabin(n: i64, s: i64, d: i64, a: i64) -> bool {
         x = y;
     }
 
+    let b = big_primes::miller_rabin(
+        Integer::from(n),
+        Integer::from(s),
+        Integer::from(d),
+        Integer::from(a),
+    );
+
+    assert_eq!(if y == 1 { true } else { false }, b);
+
     return if y == 1 { true } else { false };
 }
 

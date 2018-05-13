@@ -1,5 +1,7 @@
 #![allow(dead_code)]
+extern crate rand;
 extern crate rug;
+use self::rand::Rng;
 use self::rug::ops::Pow;
 use self::rug::rand::RandState;
 use self::rug::Integer;
@@ -46,7 +48,7 @@ pub fn power(a: Integer, n: Integer, m: Integer) -> Integer {
     result
 }
 
-fn miller_rabin(n: Integer, s: Integer, d: Integer, a: Integer) -> bool {
+pub fn miller_rabin(n: Integer, s: Integer, d: Integer, a: Integer) -> bool {
     let mut x = power(a, d, n.clone());
     let mut y = Integer::from(0);
 
@@ -72,10 +74,12 @@ pub fn is_prime(n: Integer, k: i64) -> bool {
     }
 
     let (s, d) = ninja_factor(n.clone());
+    let mut rng = rand::thread_rng();
+    //let rand = RandState::new();
 
     for _ in 0..k {
-        let mut rand = RandState::new();
-        let a = 2 + (rand.bits(32) % (Integer::from(&n - 4)));
+        let a = Integer::from(rng.gen_range(2, n.to_i64().unwrap()));
+        //let a = 2 + (rand.bits(32) % (Integer::from(&n - 4)));
         if !miller_rabin(n.clone(), s.clone(), d.clone(), a) {
             return false;
         }
