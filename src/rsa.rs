@@ -9,55 +9,51 @@ use big_primes;
 
 pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_bits: i64) {
     let mut file = File::open(path).unwrap();
-    let mut buffer = [0_u8; 2];
-
     let mut out_file = File::create(out).unwrap();
+    let n_bytes = (n_bits + 7) / 8;
 
     loop {
+        let mut buffer: Box<[u8]> = vec![0; n_bytes as usize].into_boxed_slice();
         let bytes_read = file.read(&mut buffer).unwrap();
         if bytes_read <= 0 {
             break;
         }
 
-        if bytes_read == 1 {
-            buffer[1] = 0;
-        }
+        //println!("Wrote {} bytes: {:?}", bytes_read, buffer);
 
-        println!("Wrote {} bytes: {:?}", bytes_read, buffer);
-        let i = Integer::from_digits(&buffer, Order::Lsf);
-
+        let i = Integer::from_digits(&buffer, Order::Msf);
         let c = decrypt_(priv_key.clone(), i.clone());
-
-        let digits = c.to_digits::<u8>(Order::Lsf);
+        let digits = c.to_digits::<u8>(Order::Msf);
 
         out_file.write(&digits);
+
+        //println!("Wrote {} bytes: {:?}", bytes_read, digits);
+        println!("Wrote {} bytes: {:?} {:?}", bytes_read, digits, buffer);
     }
 }
 
 pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bits: i64) {
     let mut file = File::open(path).unwrap();
-    let mut buffer = [0_u8; 2];
-
     let mut out_file = File::create(out).unwrap();
+    let n_bytes = (n_bits + 7) / 8;
 
     loop {
+        let mut buffer: Box<[u8]> = vec![0; n_bytes as usize].into_boxed_slice();
         let bytes_read = file.read(&mut buffer).unwrap();
         if bytes_read <= 0 {
             break;
         }
 
-        if bytes_read == 1 {
-            buffer[1] = 0;
-        }
+        //println!("Read {} bytes: {:?}", bytes_read, buffer);
 
-        println!("Read {} bytes: {:?}", bytes_read, buffer);
-        let i = Integer::from_digits(&buffer, Order::Lsf);
-
+        let i = Integer::from_digits(&buffer, Order::Msf);
         let c = encrypt_(pub_key.clone(), i.clone());
-
-        let digits = c.to_digits::<u8>(Order::Lsf);
+        let digits = c.to_digits::<u8>(Order::Msf);
 
         out_file.write(&digits);
+
+        //println!("Read {} bytes: {:?}", bytes_read, digits);
+        println!("Read {} bytes: {:?} {:?}", bytes_read, buffer, digits);
     }
 }
 
