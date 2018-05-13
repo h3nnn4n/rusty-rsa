@@ -6,18 +6,21 @@ extern crate rug;
 //use self::rug::rand::RandState;
 use self::rug::Integer;
 
-//fn ninja_factor(n: Integer) -> (Integer, Integer) {
-//let mut s = Integer::from(0);
-//let mut d: Integer = n - 1;
+fn ninja_factor(n: Integer) -> (Integer, Integer) {
+    let mut s = Integer::from(0);
+    let mut d: Integer = n - 1;
 
-//while d % 2 == 0 {
-//d /= 2;
-//s += 1;
-//}
+    loop {
+        if Integer::from(&d % 2) != 0 {
+            break;
+        }
 
-////(s.clone(), d.clone())
-//(s, d)
-//}
+        d = Integer::from(&d / 2);
+        s = Integer::from(&s + 1);
+    }
+
+    (s, d)
+}
 
 fn power(a: Integer, n: Integer, m: Integer) -> Integer {
     let mut nn = n;
