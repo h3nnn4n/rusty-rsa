@@ -1,5 +1,7 @@
-use primes::rand::Rng;
+#![allow(dead_code)]
+
 extern crate rand;
+use self::rand::Rng;
 
 fn ninja_factor(n: i64) -> (i64, i64) {
     let mut s = 0;
