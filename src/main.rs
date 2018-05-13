@@ -4,7 +4,7 @@ mod rsa;
 mod tests;
 
 fn main() {
-    let n_bits = 32;
+    let n_bits = 8;
     let (private, public) = rsa::get_key(n_bits);
 
     rsa::encrypt_file(

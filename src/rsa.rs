@@ -19,15 +19,12 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
             break;
         }
 
-        //println!("Wrote {} bytes: {:?}", bytes_read, buffer);
-
-        let i = Integer::from_digits(&buffer, Order::Msf);
+        let i = Integer::from_digits(&buffer, Order::MsfBe);
         let c = decrypt_(priv_key.clone(), i.clone());
-        let digits = c.to_digits::<u8>(Order::Msf);
+        let digits = c.to_digits::<u8>(Order::MsfBe);
 
         out_file.write(&digits);
 
-        //println!("Wrote {} bytes: {:?}", bytes_read, digits);
         println!("Wrote {} bytes: {:?} {:?}", bytes_read, digits, buffer);
     }
 }
@@ -44,15 +41,12 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
             break;
         }
 
-        //println!("Read {} bytes: {:?}", bytes_read, buffer);
-
-        let i = Integer::from_digits(&buffer, Order::Msf);
+        let i = Integer::from_digits(&buffer, Order::MsfBe);
         let c = encrypt_(pub_key.clone(), i.clone());
-        let digits = c.to_digits::<u8>(Order::Msf);
+        let digits = c.to_digits::<u8>(Order::MsfBe);
 
         out_file.write(&digits);
 
-        //println!("Read {} bytes: {:?}", bytes_read, digits);
         println!("Read {} bytes: {:?} {:?}", bytes_read, buffer, digits);
     }
 }
