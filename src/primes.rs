@@ -5,7 +5,7 @@ use self::rand::Rng;
 use self::rug::Integer;
 use big_primes;
 
-fn ninja_factor(n: i64) -> (i64, i64) {
+pub fn ninja_factor(n: i64) -> (i64, i64) {
     let mut s = 0;
     let mut d = n - 1;
 
@@ -15,13 +15,10 @@ fn ninja_factor(n: i64) -> (i64, i64) {
     }
 
     assert_eq!(2_i64.pow(s as u32) * d, n - 1);
-    let (s2, d2) = big_primes::ninja_factor(Integer::from(n));
-    assert_eq!(s, s2);
-    assert_eq!(d, d2);
     (s, d)
 }
 
-fn power(a: i64, n: i64, m: i64) -> i64 {
+pub fn power(a: i64, n: i64, m: i64) -> i64 {
     let mut nn = n;
     let mut power = a;
     let mut result = 1;
@@ -35,12 +32,10 @@ fn power(a: i64, n: i64, m: i64) -> i64 {
         nn >>= 1;
     }
 
-    let result2 = big_primes::power(Integer::from(a), Integer::from(n), Integer::from(m));
-    assert_eq!(result, result2);
     result
 }
 
-fn miller_rabin(n: i64, s: i64, d: i64, a: i64) -> bool {
+pub fn miller_rabin(n: i64, s: i64, d: i64, a: i64) -> bool {
     let mut x = power(a, d, n);
     let mut y = 0;
 
@@ -51,15 +46,6 @@ fn miller_rabin(n: i64, s: i64, d: i64, a: i64) -> bool {
         }
         x = y;
     }
-
-    let b = big_primes::miller_rabin(
-        Integer::from(n),
-        Integer::from(s),
-        Integer::from(d),
-        Integer::from(a),
-    );
-
-    assert_eq!(if y == 1 { true } else { false }, b);
 
     return if y == 1 { true } else { false };
 }
