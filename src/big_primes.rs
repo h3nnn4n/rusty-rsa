@@ -37,7 +37,7 @@ pub fn ninja_factor(n: Integer) -> (Integer, Integer) {
     let mut d: Integer = n.clone() - 1;
 
     loop {
-        if Integer::from(&d % 2) != 0 {
+        if d.is_odd() {
             break;
         }
 
@@ -62,7 +62,7 @@ pub fn power(a: Integer, n: Integer, m: Integer) -> Integer {
             break;
         }
 
-        if Integer::from(&nn % 2) == 1 {
+        if nn.is_odd() {
             result = Integer::from(Integer::from(&result * &power) % &m);
         }
 
@@ -92,7 +92,7 @@ pub fn miller_rabin(n: Integer, s: Integer, d: Integer, a: Integer) -> bool {
 }
 
 pub fn is_prime(n: Integer, k: i64) -> bool {
-    if (Integer::from(&n % 2) == 0 && Integer::from(&n) != 2) || Integer::from(&n) < 2 {
+    if (n.is_even() && Integer::from(&n) != 2) || Integer::from(&n) < 2 {
         return false;
     }
     if Integer::from(&n) <= 3 {
