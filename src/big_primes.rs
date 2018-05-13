@@ -1,8 +1,36 @@
 #![allow(dead_code)]
+extern crate rand;
 extern crate rug;
+use self::rand::{thread_rng, Rng};
 use self::rug::ops::Pow;
 use self::rug::rand::RandState;
 use self::rug::Integer;
+
+pub fn get_number_with_n_bits(n_bits: i64) -> Integer {
+    let consonants = b"01";
+    let mut result = String::new();
+    result.push('1');
+
+    for _ in 0..n_bits - 2 {
+        result.push(thread_rng().choose(consonants).cloned().unwrap().into());
+    }
+
+    result.push('1');
+
+    let valid1 = Integer::parse_radix(result, 2);
+    let value = Integer::from(valid1.unwrap());
+
+    value
+}
+
+pub fn get_prime_with_n_bits(n_bits: i64) -> Integer {
+    loop {
+        let n = get_number_with_n_bits(n_bits);
+        if is_prime(n.clone(), 20) {
+            return n;
+        }
+    }
+}
 
 pub fn ninja_factor(n: Integer) -> (Integer, Integer) {
     let mut s = Integer::from(0);
