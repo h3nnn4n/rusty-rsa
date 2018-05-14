@@ -4,8 +4,10 @@ mod rsa;
 mod tests;
 
 fn main() {
-    let n_bits = 8;
+    let n_bits = 128;
     let (private, public) = rsa::get_key(n_bits);
+
+    println!("{:?} {:?}", private, public);
 
     rsa::encrypt_file(
         "test".to_string(),
