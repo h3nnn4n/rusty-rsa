@@ -121,6 +121,17 @@ mod tests {
     }
 
     #[test]
+    fn idempotent_digit_convesion() {
+        // Asserts that the to_digits <-> from_digits conversion is idempotent
+        for i in 0..100 {
+            let n = big_primes::get_number_with_n_bits((i * 12342 + 2456) % 128 + 32);
+            let a = n.clone().to_digits::<u8>(Order::Lsf);
+            let b = Integer::from_digits::<u8>(&a, Order::Lsf);
+            assert_eq!(n, b);
+        }
+    }
+
+    #[test]
     fn mod_inv() {
         assert_eq!(super::mod_inv(Integer::from(7), Integer::from(40)), 23);
         assert_eq!(super::mod_inv(Integer::from(42), Integer::from(2017)), 1969);
