@@ -1,10 +1,11 @@
+use std::env;
+
 mod big_primes;
 mod primes;
 mod rsa;
 mod tests;
 
-fn main() {
-    let n_bits = 128;
+fn rsa_magic(n_bits: i64) {
     let (private, public) = rsa::get_key(n_bits);
 
     println!("{:?} {:?}", private, public);
@@ -26,4 +27,18 @@ fn main() {
     );
 
     println!();
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    println!("{:?}", args);
+
+    let n_bits_try = args[1].parse();
+
+    let n_bits = match n_bits_try {
+        Ok(n) => n,
+        Err(_) => 24,
+    };
+
+    rsa_magic(n_bits);
 }
