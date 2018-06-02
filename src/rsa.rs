@@ -37,8 +37,9 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
 pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bits: i64) {
     let mut file = File::open(path).unwrap();
     let mut out_file = File::create(out).unwrap();
-    //let n_bytes = n_bits / 8 - 0;
-    let n_bytes = 2;
+    let n_bytes = n_bits / 8;
+
+    assert!(n_bytes > 0);
 
     let mut in_buffer: Vec<Vec<u8>> = Vec::new();
     let mut out_buffer: Vec<Vec<u8>> = Vec::new();
@@ -265,9 +266,9 @@ mod tests {
 
     #[allow(dead_code)]
     fn create_random_file(size: i64) -> String {
-        let fname = get_random_string(8);
+        let fname = format!("{}_{}", size, get_random_string(8));
         let mut out_file = File::create(fname.clone()).unwrap();
-        let s = get_random_string(size);
+        let s = get_random_string(500);
 
         match out_file.write_all(s.as_bytes()) {
             Ok(_) => (),
@@ -277,42 +278,57 @@ mod tests {
         fname
     }
 
-    #[test]
-    fn encrypt_decrypt_file() {
-        for n_bits in [16, 32, 64, 128].iter() {
+    fn encrypt_decrypt_file(n_bits: i64) -> bool {
+        let (private, public) = super::get_key(n_bits);
+
+        let f = create_random_file(n_bits);
+
+        let f_in = f.clone() + "";
+        let f_enc = f.clone() + ".enc";
+        let f_dec = f + ".dec";
+
+        encrypt_file(f_in.clone(), f_enc.clone(), public.clone(), n_bits);
+        decrypt_file(f_enc.clone(), f_dec.clone(), private.clone(), n_bits);
+
+        let mut d_in = String::new();
+        let mut d_out = String::new();
+
+        let mut f_org = File::open(f_in.clone()).expect("Unable to open file");
+        let mut f_out = File::open(f_dec.clone()).expect("Unable to open file");
+
+        f_org
+            .read_to_string(&mut d_in)
+            .expect("Unable to read string");
+
+        f_out
+            .read_to_string(&mut d_out)
+            .expect("Unable to read string");
+
+        let _ = fs::remove_file(f_in);
+        let _ = fs::remove_file(f_enc);
+        let _ = fs::remove_file(f_dec);
+
+        d_in == d_out
+    }
+
+    macro_rules! enc_dec_file {
+    ($($name:ident: $value:expr,)*) => { $(
+        #[test]
+        fn $name() {
+            let n = $value;
             for _ in 0..5 {
-                let (private, public) = super::get_key(*n_bits);
-                for _ in 0..10 {
-                    let f = create_random_file(50);
-                    let f_in = f.clone() + "";
-                    let f_enc = f.clone() + ".enc";
-                    let f_dec = f + ".dec";
-
-                    encrypt_file(f_in.clone(), f_enc.clone(), public.clone(), *n_bits);
-                    decrypt_file(f_enc.clone(), f_dec.clone(), private.clone(), *n_bits);
-
-                    let mut d_in = String::new();
-                    let mut d_out = String::new();
-
-                    let mut f_org = File::open(f_in.clone()).expect("Unable to open file");
-                    let mut f_out = File::open(f_dec.clone()).expect("Unable to open file");
-
-                    f_org
-                        .read_to_string(&mut d_in)
-                        .expect("Unable to read string");
-
-                    f_out
-                        .read_to_string(&mut d_out)
-                        .expect("Unable to read string");
-
-                    let _ = fs::remove_file(f_in);
-                    let _ = fs::remove_file(f_enc);
-                    let _ = fs::remove_file(f_dec);
-
-                    assert_eq!(d_in, d_out);
-                }
+                assert!(encrypt_decrypt_file(n));
             }
-        }
+        })*}
+    }
+
+    enc_dec_file! {
+        encrypt_decrypt_file_32: 32,
+        encrypt_decrypt_file_64: 64,
+        encrypt_decrypt_file_128: 128,
+        encrypt_decrypt_file_256: 256,
+        encrypt_decrypt_file_512: 512,
+        encrypt_decrypt_file_1024: 1024,
     }
 
     #[test]
