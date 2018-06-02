@@ -101,7 +101,11 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
 
 fn mod_inv(a: Integer, module: Integer) -> Integer {
     let mut n = a.clone();
-    n.invert_mut(&module.clone());
+
+    match n.invert_mut(&module.clone()) {
+        Ok(()) => (),
+        Err(()) => unreachable!(),
+    }
 
     let mut mn = (module.clone(), a.clone());
     let mut xy = (Integer::from(0), Integer::from(1));
@@ -131,6 +135,7 @@ pub fn decrypt_((d, n): (Integer, Integer), m: Integer) -> Integer {
     m.pow_mod(&d, &n).unwrap()
 }
 
+#[allow(dead_code)]
 pub fn read_key_from_file(file_name: String) -> (Integer, Integer) {
     let data = fs::read(file_name).expect("Unable to read file");
     let decoded = &base64::decode(&data).unwrap();
@@ -143,6 +148,7 @@ pub fn read_key_from_file(file_name: String) -> (Integer, Integer) {
     (a, b)
 }
 
+#[allow(dead_code)]
 pub fn get_last_pub_key() -> (Integer, Integer) {
     let data = fs::read("pub_key").expect("Unable to read file");
     let decoded = &base64::decode(&data).unwrap();
@@ -176,8 +182,15 @@ pub fn gen_key_and_save_to_file(n_bits: i64, file_name: String) {
     let mut pub_file = File::create(format!("{}.pub", file_name)).unwrap();
     let mut prv_file = File::create(format!("{}.prv", file_name)).unwrap();
 
-    pub_file.write(pub_str.as_bytes());
-    prv_file.write(prv_str.as_bytes());
+    match pub_file.write(pub_str.as_bytes()) {
+        Ok(_) => (),
+        Err(_) => println!("[WRN] Failed to write public key to file"),
+    }
+
+    match prv_file.write(prv_str.as_bytes()) {
+        Ok(_) => (),
+        Err(_) => println!("[WRN] Failed to write private key to file"),
+    }
 }
 
 pub fn get_key_from_file(file_name: String) -> (Integer, Integer) {
@@ -213,8 +226,15 @@ pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
             let mut pub_file = File::create("pub_key").unwrap();
             let mut prv_file = File::create("prv_key").unwrap();
 
-            pub_file.write(pub_str.as_bytes());
-            prv_file.write(prv_str.as_bytes());
+            match pub_file.write(pub_str.as_bytes()) {
+                Ok(_) => (),
+                Err(_) => println!("[WRN] Failed to write private key to file"),
+            }
+
+            match prv_file.write(prv_str.as_bytes()) {
+                Ok(_) => (),
+                Err(_) => println!("[WRN] Failed to write private key to file"),
+            }
 
             return (private, public);
         }
@@ -322,19 +342,5 @@ mod tests {
     fn mod_inv() {
         assert_eq!(super::mod_inv(Integer::from(7), Integer::from(40)), 23);
         assert_eq!(super::mod_inv(Integer::from(42), Integer::from(2017)), 1969);
-    }
-
-    //#[test]
-    fn write_last_key() {
-        let n_bits = 256;
-
-        for _ in 0..10 {
-            let (a, b) = super::get_key(n_bits);
-            let a2 = super::get_last_prv_key();
-            let b2 = super::get_last_pub_key();
-
-            assert_eq!(a, a2);
-            assert_eq!(b, b2);
-        }
     }
 }
