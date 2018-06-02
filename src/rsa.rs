@@ -1,9 +1,13 @@
+extern crate base64;
 extern crate rand;
 extern crate rug;
+
+use self::base64::{decode, encode};
 use self::rand::{thread_rng, Rng};
 use self::rug::integer::Order;
 use self::rug::Integer;
 use std::cmp;
+use std::fs;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -49,6 +53,11 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
     let mut in_buffer: Vec<Vec<u8>> = Vec::new();
     let mut out_buffer: Vec<Vec<u8>> = Vec::new();
     let mut max_len: usize = 0;
+    let mut max_len_bytes: usize = 0;
+
+    let debug = false;
+
+    let prv_key = get_last_prv_key();
 
     println!("Bytes read - Buffer - Digits");
 
@@ -65,6 +74,10 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         let digits = c.to_digits::<u8>(Order::Lsf);
         max_len = cmp::max(max_len, digits.len());
 
+        let _i = Integer::from_digits::<u8>(&digits, Order::Lsf);
+        let _c = decrypt_(prv_key.clone(), _i.clone());
+        let _digits = _c.to_digits::<u8>(Order::Lsf);
+
         if c >= pub_key.clone().1 {
             println!("Zoera detector detected zoera");
         }
@@ -73,24 +86,34 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
             println!("HAH! {} {}", digits.len(), max_len);
         }
 
-        //if c.significant_bits() <
-
         //let bytes_wrote = out_file.write(&digits).unwrap();
 
         //println!(
         //"Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
         //bytes_read,
         //bytes_wrote,
-        //c.significant_bits(),
+        //c.significant_bits() / 8,
         //buffer,
         //digits
         //);
+
+        if buffer.to_vec() != _digits {
+            println!(
+                " ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
+                i, _c, _i, c, digits, _digits
+            );
+            println!();
+        }
+
+        //assert_eq!(buffer.to_vec(), _digits);
         out_buffer.push(digits);
     }
 
     for (k, b) in out_buffer.iter().enumerate() {
+        let mut bytes_wrote;
         let mut bytes_written = 0;
         if b.len() < max_len {
+            bytes_wrote = out_file.write(b).unwrap();
             let diff = max_len - b.len();
             println!("Detected a treta of size {}", diff);
             for _ in 0..diff {
@@ -98,9 +121,9 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
                 let bb = out_file.write(&a).unwrap();
                 bytes_written += bb;
             }
+        } else {
+            bytes_wrote = out_file.write(b).unwrap();
         }
-
-        let bytes_wrote = out_file.write(b).unwrap();
 
         println!(
             "Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
@@ -140,18 +163,93 @@ pub fn decrypt_((d, n): (Integer, Integer), m: Integer) -> Integer {
     m.pow_mod(&d, &n).unwrap()
 }
 
+pub fn get_last_pub_key() -> (Integer, Integer) {
+    let data = fs::read("pub_key").expect("Unable to read file");
+    let decoded = &base64::decode(&data).unwrap();
+    let pub_data = String::from_utf8_lossy(decoded);
+    let pub_token = pub_data.split(',').collect::<Vec<_>>();
+
+    let d = Integer::from_str_radix(pub_token[0], 10).unwrap();
+    let n = Integer::from_str_radix(pub_token[1], 10).unwrap();
+
+    (d, n)
+}
+
+pub fn get_last_prv_key() -> (Integer, Integer) {
+    let data = fs::read("prv_key").expect("Unable to read file");
+    let decoded = &base64::decode(&data).unwrap();
+    let prv_data = String::from_utf8_lossy(decoded);
+    let prv_token = prv_data.split(',').collect::<Vec<_>>();
+
+    let d = Integer::from_str_radix(prv_token[0], 10).unwrap();
+    let n = Integer::from_str_radix(prv_token[1], 10).unwrap();
+
+    (d, n)
+}
+
 pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
-    let p = big_primes::get_prime_with_n_bits(n_bits / 2);
-    let q = big_primes::get_prime_with_n_bits(n_bits / 2);
-    let n = Integer::from(&p * &q);
-    let tot = Integer::from(Integer::from(&p - 1) * Integer::from(&q - 1));
-    let e = big_primes::get_prime_with_n_bits(16);
-    let d = mod_inv(e.clone(), tot.clone());
+    // returns private, public
 
-    assert!(e.clone() % tot.clone() != 0);
-    assert!(tot.clone() % e.clone() != 0);
+    if true {
+        loop {
+            let p = big_primes::get_prime_with_n_bits(n_bits / 2);
+            let q = big_primes::get_prime_with_n_bits(n_bits / 2);
+            let n = Integer::from(&p * &q);
+            let tot = Integer::from(Integer::from(&p - 1) * Integer::from(&q - 1));
+            //let e = big_primes::get_prime_with_n_bits(16);
+            let e = Integer::from_str_radix("65537", 10).unwrap(); // Fixed public exponent
+            let d = mod_inv(e.clone(), tot.clone());
 
-    ((d, n.clone()), (e, n))
+            if n.significant_bits() as i64 == n_bits {
+                let (private, public) = ((d, n.clone()), (e, n));
+
+                let pub_str = base64::encode(&format!("{:?},{:?}", public.0, public.1));
+                let prv_str = base64::encode(&format!("{:?},{:?}", private.0, private.1));
+
+                let mut pub_file = File::create("pub_key").unwrap();
+                let mut prv_file = File::create("prv_key").unwrap();
+
+                pub_file.write(pub_str.as_bytes());
+                prv_file.write(prv_str.as_bytes());
+
+                return (private, public);
+            } else {
+                //println!(
+                //"d: {}  e: {}  n: {}  n_bits: {}",
+                //d.significant_bits(),
+                //e.significant_bits(),
+                //n.significant_bits(),
+                //n_bits
+                //);
+            }
+        }
+    } else {
+        return (
+            (Integer::from(13121), Integer::from(43739)),
+            (Integer::from(48761), Integer::from(43739)),
+        );
+
+        //return (
+        //(
+        //Integer::from_str_radix("105717277304642107417830137289274313923", 10).unwrap(),
+        //Integer::from_str_radix("142959091504020790024686934115146055573", 10).unwrap(),
+        //),
+        //(
+        //Integer::from_str_radix("42187", 10).unwrap(),
+        //Integer::from_str_radix("142959091504020790024686934115146055573", 10).unwrap(),
+        //),
+        //);
+
+        //return (
+        //(Integer::from(11483), Integer::from(26123)),
+        //(Integer::from(33347), Integer::from(26123)),
+        //);
+
+        //return (
+        //(Integer::from(4993), Integer::from(29747)),
+        //(Integer::from(33457), Integer::from(29747)),
+        //);
+    }
 }
 
 #[cfg(test)]
@@ -213,19 +311,26 @@ mod tests {
 
     #[test]
     fn encrypt_decrypt_int() {
-        for n_bits in [16, 32, 64, 128].iter() {
-            for _ in 0..10 {
-                let (private, public) = super::get_key(*n_bits);
-                for _ in 0..10 {
-                    let m = big_primes::get_prime_with_n_bits(*n_bits - 10);
+        let mut rng = rand::thread_rng();
+
+        let n_tries = 10;
+        let n_keys = 20;
+        let n_messages = 5;
+
+        for _ in 0..n_tries {
+            let n_bits = rng.gen_range(16, 128);
+            for _ in 0..n_keys {
+                let (private, public) = super::get_key(n_bits);
+                for _ in 0..n_messages {
+                    let m = big_primes::get_prime_with_n_bits(n_bits - 1);
 
                     let c = encrypt_(public.clone(), m.clone());
                     let m2 = decrypt_(private.clone(), c.clone());
 
                     assert_eq!(
                         m, m2,
-                        "priv: {:?}  pub: {:?}  m:{:?}  c:{:?}",
-                        private, public, m, c
+                        "priv: {:?}  pub: {:?}  m:{:?}  c:{:?}  m2:{:?}",
+                        private, public, m, c, m2,
                     );
                 }
             }
@@ -247,5 +352,19 @@ mod tests {
     fn mod_inv() {
         assert_eq!(super::mod_inv(Integer::from(7), Integer::from(40)), 23);
         assert_eq!(super::mod_inv(Integer::from(42), Integer::from(2017)), 1969);
+    }
+
+    #[test]
+    fn write_last_key() {
+        let n_bits = 256;
+
+        for _ in 0..10 {
+            let (a, b) = super::get_key(n_bits);
+            let a2 = super::get_last_prv_key();
+            let b2 = super::get_last_pub_key();
+
+            assert_eq!(a, a2);
+            assert_eq!(b, b2);
+        }
     }
 }

@@ -8,17 +8,32 @@ use self::rug::Integer;
 
 pub fn get_number_with_n_bits(n_bits: i64) -> Integer {
     let consonants = b"01";
-    let mut result = String::new();
-    result.push('1');
+    let mut value: Integer;
 
-    for _ in 0..n_bits - 2 {
-        result.push(thread_rng().choose(consonants).cloned().unwrap().into());
+    loop {
+        let mut result = String::new();
+        result.push('1');
+
+        for _ in 0..n_bits - 2 {
+            result.push(thread_rng().choose(consonants).cloned().unwrap().into());
+        }
+
+        result.push('1');
+
+        let valid1 = Integer::parse_radix(result, 2);
+        value = Integer::from(valid1.unwrap());
+
+        if value.significant_bits() as i64 == n_bits {
+            break;
+        } else {
+            println!(
+                "[WARN] Expected number with {} bits, got {} instead",
+                n_bits,
+                value.significant_bits()
+            );
+            panic!();
+        }
     }
-
-    result.push('1');
-
-    let valid1 = Integer::parse_radix(result, 2);
-    let value = Integer::from(valid1.unwrap());
 
     value
 }
