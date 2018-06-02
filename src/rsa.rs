@@ -19,7 +19,7 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
     let mut out_file = File::create(out).unwrap();
     let n_bytes = n_bits / 8 - 0;
 
-    println!("Bytes read - Digits - Buffer");
+    //println!("Bytes read - Digits - Buffer");
 
     loop {
         let mut buffer: Box<[u8]> = vec![0; n_bytes as usize].into_boxed_slice();
@@ -34,14 +34,14 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
 
         let bytes_wrote = out_file.write(&digits).unwrap();
 
-        println!(
-            "Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
-            bytes_read,
-            bytes_wrote,
-            c.significant_bits(),
-            digits,
-            buffer,
-        );
+        //println!(
+        //"Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
+        //bytes_read,
+        //bytes_wrote,
+        //c.significant_bits(),
+        //digits,
+        //buffer,
+        //);
     }
 }
 
@@ -60,7 +60,7 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
 
     let prv_key = get_last_prv_key();
 
-    println!("Bytes read - Buffer - Digits");
+    //println!("Bytes read - Buffer - Digits");
 
     loop {
         let mut buffer: Box<[u8]> = vec![0; n_bytes as usize].into_boxed_slice();
@@ -79,13 +79,13 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         let _c = decrypt_(prv_key.clone(), _i.clone());
         let _digits = _c.to_digits::<u8>(Order::Lsf);
 
-        if c >= pub_key.clone().1 {
-            println!("Zoera detector detected zoera");
-        }
+        //if c >= pub_key.clone().1 {
+        //println!("Zoera detector detected zoera");
+        //}
 
-        if digits.len() < max_len {
-            println!("HAH! {} {}", digits.len(), max_len);
-        }
+        //if digits.len() < max_len {
+        //println!("HAH! {} {}", digits.len(), max_len);
+        //}
 
         //let bytes_wrote = out_file.write(&digits).unwrap();
 
@@ -101,7 +101,7 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         if i != _c || _i != c {
             println!();
             println!(
-                " ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
+                " Drift detected  ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
                 i, _c, _i, c, digits, _digits
             );
             println!();
@@ -117,7 +117,7 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         if b.len() < max_len {
             bytes_wrote = out_file.write(b).unwrap();
             let diff = max_len - b.len();
-            println!("Detected a treta of size {}", diff);
+            //println!("Detected a treta of size {}", diff);
             for _ in 0..diff {
                 let a = [0_u8; 1];
                 let bb = out_file.write(&a).unwrap();
@@ -127,10 +127,10 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
             bytes_wrote = out_file.write(b).unwrap();
         }
 
-        println!(
-            "Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
-            0, bytes_wrote, 0, b, in_buffer[k],
-        );
+        //println!(
+        //"Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
+        //0, bytes_wrote, 0, b, in_buffer[k],
+        //);
 
         bytes_written += bytes_wrote;
 
