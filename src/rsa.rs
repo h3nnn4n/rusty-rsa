@@ -44,7 +44,7 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
     let mut out_buffer: Vec<Vec<u8>> = Vec::new();
     let mut max_len: usize = 0;
 
-    let prv_key = get_last_prv_key();
+    //let prv_key = get_last_prv_key();
 
     loop {
         let mut buffer: Box<[u8]> = vec![0; n_bytes as usize].into_boxed_slice();
@@ -59,21 +59,23 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         let digits = c.to_digits::<u8>(Order::Lsf);
         max_len = cmp::max(max_len, digits.len());
 
-        let _i = Integer::from_digits::<u8>(&digits, Order::Lsf);
-        let _c = decrypt_(prv_key.clone(), _i.clone());
-        let _digits = _c.to_digits::<u8>(Order::Lsf);
+        //let _i = Integer::from_digits::<u8>(&digits, Order::Lsf);
+        //let _c = decrypt_(prv_key.clone(), _i.clone());
+        //let _digits = _c.to_digits::<u8>(Order::Lsf);
 
         if c >= pub_key.clone().1 {
             println!("[ERR] Message is bigger than the key! Message will not be decryptable!");
+            panic!();
         }
 
-        if i != _c || _i != c {
-            //println!(
-            //"Drift detected  ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
-            //i, _c, _i, c, digits, _digits
-            //);
-            println!("[ERR] Check failed. Message will not be decryptable!");
-        }
+        //if i != _c || _i != c {
+        //println!(
+        //"Drift detected  ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
+        //i, _c, _i, c, digits, _digits
+        //);
+        //println!("[ERR] Check failed. Message will not be decryptable!");
+        //panic!();
+        //}
 
         out_buffer.push(digits);
     }
@@ -161,6 +163,7 @@ pub fn get_last_pub_key() -> (Integer, Integer) {
     (d, n)
 }
 
+#[allow(dead_code)]
 pub fn get_last_prv_key() -> (Integer, Integer) {
     let data = fs::read("prv_key").expect("Unable to read file");
     let decoded = &base64::decode(&data).unwrap();
@@ -246,6 +249,7 @@ mod tests {
     use self::rand;
     use self::rand::Rng;
     use super::*;
+    use std::fs;
 
     #[allow(dead_code)]
     fn get_random_string(size: i64) -> String {
@@ -273,32 +277,37 @@ mod tests {
         fname
     }
 
-    #[allow(dead_code)]
+    #[test]
     fn encrypt_decrypt_file() {
         for n_bits in [16, 32, 64, 128].iter() {
             for _ in 0..5 {
                 let (private, public) = super::get_key(*n_bits);
                 for _ in 0..10 {
-                    let f = create_random_file(*n_bits);
-                    let f_in = f.clone();
+                    let f = create_random_file(50);
+                    let f_in = f.clone() + "";
                     let f_enc = f.clone() + ".enc";
                     let f_dec = f + ".dec";
 
-                    println!("{:?}", f_in);
-
                     encrypt_file(f_in.clone(), f_enc.clone(), public.clone(), *n_bits);
-                    decrypt_file(f_enc, f_dec.clone(), private.clone(), *n_bits);
+                    decrypt_file(f_enc.clone(), f_dec.clone(), private.clone(), *n_bits);
 
                     let mut d_in = String::new();
                     let mut d_out = String::new();
-                    let mut f_in = File::open(f_in).expect("Unable to open file");
-                    let mut f_out = File::open(f_dec).expect("Unable to open file");
 
-                    f_in.read_to_string(&mut d_in)
+                    let mut f_org = File::open(f_in.clone()).expect("Unable to open file");
+                    let mut f_out = File::open(f_dec.clone()).expect("Unable to open file");
+
+                    f_org
+                        .read_to_string(&mut d_in)
                         .expect("Unable to read string");
+
                     f_out
                         .read_to_string(&mut d_out)
                         .expect("Unable to read string");
+
+                    let _ = fs::remove_file(f_in);
+                    let _ = fs::remove_file(f_enc);
+                    let _ = fs::remove_file(f_dec);
 
                     assert_eq!(d_in, d_out);
                 }
