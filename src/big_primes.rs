@@ -11,8 +11,6 @@ pub fn prime_factorization_brute_force(x: Integer) -> Vec<Integer> {
     let mut p = Integer::from(3);
     let stop = Integer::from(x.clone().sqrt());
 
-    factors.push(Integer::from(1));
-
     if x.clone() % 2 == 0 {
         factors.push(Integer::from(2));
     }
@@ -30,25 +28,61 @@ pub fn prime_factorization_brute_force(x: Integer) -> Vec<Integer> {
         }
     }
 
+    factors.push(Integer::from(1));
     factors.push(x.clone());
-
     factors.sort();
 
     factors
 }
 
-pub fn prime_factorization_pollard_rho_plus_one(x: Integer) -> Vec<Integer> {
+pub fn prime_factorization_pollard_rho_plus_one(n: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
 
-    //x ← 2; y ← 2; d ← 1
-    //while d = 1:
-    //x ← g(x)
-    //y ← g(g(y))
-    //d ← gcd(|x - y|, n)
-    //if d = n:
-    //return failure
-    //else:
-    //return d
+    factors.push(Integer::from(1));
+    factors.push(n.clone());
+
+    fn pollard_rho_step(n: Integer) -> (Integer, Integer) {
+        let mut x = get_number_with_n_bits((n.significant_bits() / 2) as i64);
+        let mut y = x.clone();
+        let mut d = Integer::from(1);
+        let one = Integer::from(1);
+        let g = |x: Integer| (Integer::from(&x * &x) + Integer::from(1)) % n.clone();
+
+        loop {
+            x = g(x);
+            y = g(g(y));
+            d = Integer::from((x.clone() - y.clone()).abs());
+            d = d.gcd(&n.clone());
+
+            if d != one {
+                break;
+            }
+        }
+
+        if d == n {
+            return (one, n.clone());
+        } else {
+            return (d.clone(), n.clone() / d.clone());
+        }
+    }
+
+    for _ in 0..10 {
+        let (p, q) = pollard_rho_step(n.clone());
+
+        if !factors.contains(&p) {
+            factors.push(p.clone());
+
+            if p == q.clone() {
+                factors.push(q.clone());
+            }
+        }
+
+        if !factors.contains(&q) {
+            factors.push(q);
+        }
+    }
+
+    factors.sort();
 
     factors
 }
@@ -225,6 +259,22 @@ mod tests {
     #[test]
     fn primes_less_than_10000() {
         assert!(count_primes(10000) == 1229);
+    }
+
+    #[test]
+    fn pollard_rho_factorization() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(10);
+            let n = get_prime_with_n_bits(15);
+
+            let p = Integer::from(&m * &n);
+
+            let mut q = vec![Integer::from(1), m, n, p.clone()];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_pollard_rho_plus_one(p), q);
+        }
     }
 
     #[test]
