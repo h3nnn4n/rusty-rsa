@@ -35,13 +35,38 @@ pub fn prime_factorization_brute_force(x: Integer) -> Vec<Integer> {
     factors
 }
 
-pub fn prime_factorization_pollard_rho_plus_one(n: Integer) -> Vec<Integer> {
+pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
 
     factors.push(Integer::from(1));
     factors.push(n.clone());
 
-    fn pollard_rho_step(n: Integer) -> (Integer, Integer) {
+    fn pollard_rho_minus_one_step(n: Integer) -> (Integer, Integer) {
+        let mut x = get_number_with_n_bits((n.significant_bits() / 2) as i64);
+        let mut y = x.clone();
+        let mut d = Integer::from(1);
+        let one = Integer::from(1);
+        let g = |x: Integer| (Integer::from(&x * &x) - Integer::from(1)) % n.clone();
+
+        loop {
+            x = g(x);
+            y = g(g(y));
+            d = Integer::from((x.clone() - y.clone()).abs());
+            d = d.gcd(&n.clone());
+
+            if d != one {
+                break;
+            }
+        }
+
+        if d == n {
+            return (one, n.clone());
+        } else {
+            return (d.clone(), n.clone() / d.clone());
+        }
+    }
+
+    fn pollard_rho_plus_one_step(n: Integer) -> (Integer, Integer) {
         let mut x = get_number_with_n_bits((n.significant_bits() / 2) as i64);
         let mut y = x.clone();
         let mut d = Integer::from(1);
@@ -66,8 +91,12 @@ pub fn prime_factorization_pollard_rho_plus_one(n: Integer) -> Vec<Integer> {
         }
     }
 
-    for _ in 0..10 {
-        let (p, q) = pollard_rho_step(n.clone());
+    for i in 0..10 {
+        let (p, q) = if i % 2 == 0 {
+            pollard_rho_minus_one_step(n.clone())
+        } else {
+            pollard_rho_plus_one_step(n.clone())
+        };
 
         if !factors.contains(&p) {
             factors.push(p.clone());
@@ -273,7 +302,7 @@ mod tests {
 
             q.sort();
 
-            assert_eq!(prime_factorization_pollard_rho_plus_one(p), q);
+            assert_eq!(prime_factorization_pollard_rho(p), q);
         }
     }
 
