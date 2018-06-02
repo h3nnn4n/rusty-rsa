@@ -1,5 +1,5 @@
 # Rusty RSA
-==============
+===========
 Rusty RSA is yet another rust reimplementation of RSA. It was a bad name (which most likely I am not the first one to use) and should not be used for anything serious (other than getting my grades).
 
 ## Usage
@@ -23,7 +23,7 @@ This will use a key size of `256` stored in `totoro.pub` to encrypt the `secret_
 What happens if the key size is not the same as the one in the file? I have no idea. Things will break most likely.
 
 ```
-rsa_lixo --keysize 256 --key totoro.pub --decrypt secret_file.enc
+rsa_lixo --keysize 256 --key totoro.prv --decrypt secret_file.enc
 ```
 
 This decrypts the file. Works similar to `encrypt`.
