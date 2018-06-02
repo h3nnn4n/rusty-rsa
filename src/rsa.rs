@@ -138,6 +138,9 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
 }
 
 fn mod_inv(a: Integer, module: Integer) -> Integer {
+    let mut n = a.clone();
+    let check = n.invert_mut(&module.clone());
+
     let mut mn = (module.clone(), a.clone());
     let mut xy = (Integer::from(0), Integer::from(1));
 
@@ -152,6 +155,8 @@ fn mod_inv(a: Integer, module: Integer) -> Integer {
     while xy.0.clone() < 0 {
         xy.0 = Integer::from(&xy.0 + &module);
     }
+
+    assert_eq!(n, xy.0);
 
     xy.0
 }
@@ -214,14 +219,6 @@ pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
                 prv_file.write(prv_str.as_bytes());
 
                 return (private, public);
-            } else {
-                //println!(
-                //"d: {}  e: {}  n: {}  n_bits: {}",
-                //d.significant_bits(),
-                //e.significant_bits(),
-                //n.significant_bits(),
-                //n_bits
-                //);
             }
         }
     } else {
@@ -229,27 +226,6 @@ pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
             (Integer::from(13121), Integer::from(43739)),
             (Integer::from(48761), Integer::from(43739)),
         );
-
-        //return (
-        //(
-        //Integer::from_str_radix("105717277304642107417830137289274313923", 10).unwrap(),
-        //Integer::from_str_radix("142959091504020790024686934115146055573", 10).unwrap(),
-        //),
-        //(
-        //Integer::from_str_radix("42187", 10).unwrap(),
-        //Integer::from_str_radix("142959091504020790024686934115146055573", 10).unwrap(),
-        //),
-        //);
-
-        //return (
-        //(Integer::from(11483), Integer::from(26123)),
-        //(Integer::from(33347), Integer::from(26123)),
-        //);
-
-        //return (
-        //(Integer::from(4993), Integer::from(29747)),
-        //(Integer::from(33457), Integer::from(29747)),
-        //);
     }
 }
 
@@ -318,20 +294,21 @@ mod tests {
         let n_keys = 20;
         let n_messages = 5;
 
-        for _ in 0..n_tries {
-            let n_bits = rng.gen_range(16, 128);
+        for n_bits in [32, 64, 128].iter() {
+            //for _ in 0..n_tries {
+            //let n_bits = rng.gen_range(16, 128);
             for _ in 0..n_keys {
-                let (private, public) = super::get_key(n_bits);
+                let (private, public) = super::get_key(*n_bits);
                 for _ in 0..n_messages {
-                    let m = big_primes::get_prime_with_n_bits(n_bits - 1);
+                    let m = big_primes::get_prime_with_n_bits(16);
 
                     let c = encrypt_(public.clone(), m.clone());
                     let m2 = decrypt_(private.clone(), c.clone());
 
                     assert_eq!(
                         m, m2,
-                        "priv: {:?}  pub: {:?}  m:{:?}  c:{:?}  m2:{:?}",
-                        private, public, m, c, m2,
+                        "{:?}  priv: {:?}  pub: {:?}  c:{:?}",
+                        *n_bits, private, public, c
                     );
                 }
             }

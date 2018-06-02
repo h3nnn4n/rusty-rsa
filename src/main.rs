@@ -7,10 +7,6 @@ mod tests;
 
 fn rsa_magic(n_bits: i64) {
     let (private, public) = rsa::get_key(n_bits);
-    //let (private, public) = (
-    //(Integer::from(11483), Integer::from(26123)),
-    //(Integer::from(33347), Integer::from(26123)),
-    //);
 
     println!("{:?} {:?}", private, public);
 

@@ -68,6 +68,15 @@ pub fn ninja_factor(n: Integer) -> (Integer, Integer) {
 }
 
 pub fn power(a: Integer, n: Integer, m: Integer) -> Integer {
+    let mut n_ = a.clone();
+    let e_ = n.clone();
+    let m_ = m.clone();
+
+    let check = match n_.pow_mod(&e_, &m_) {
+        Ok(check) => check,
+        Err(_) => unreachable!(),
+    };
+
     let mut nn = n;
     let mut power = a;
     let mut result = Integer::from(1);
@@ -85,6 +94,8 @@ pub fn power(a: Integer, n: Integer, m: Integer) -> Integer {
 
         nn = Integer::from(&nn >> 1);
     }
+
+    assert_eq!(result, check);
 
     result
 }
