@@ -243,29 +243,37 @@ pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
 
 #[cfg(test)]
 mod tests {
+    use self::rand;
+    use self::rand::Rng;
     use super::*;
 
+    #[allow(dead_code)]
     fn get_random_string(size: i64) -> String {
         let chars = b"abcdfeghijklmnopqrstuvwxyz";
         let mut v = String::new();
 
         for _ in 0..size {
-            v.push(thread_rng().choose(chars).cloned().unwrap().into());
+            v.push(rand::thread_rng().choose(chars).cloned().unwrap().into());
         }
 
         v
     }
 
+    #[allow(dead_code)]
     fn create_random_file(size: i64) -> String {
         let fname = get_random_string(8);
         let mut out_file = File::create(fname.clone()).unwrap();
         let s = get_random_string(size);
 
-        out_file.write_all(s.as_bytes());
+        match out_file.write_all(s.as_bytes()) {
+            Ok(_) => (),
+            Err(_) => println!("Random file was not written to disk"),
+        }
 
         fname
     }
 
+    #[allow(dead_code)]
     fn encrypt_decrypt_file() {
         for n_bits in [16, 32, 64, 128].iter() {
             for _ in 0..5 {
@@ -300,9 +308,9 @@ mod tests {
 
     #[test]
     fn encrypt_decrypt_int() {
-        let mut rng = rand::thread_rng();
+        //let mut rng = rand::thread_rng();
 
-        let n_tries = 10;
+        //let n_tries = 10;
         let n_keys = 20;
         let n_messages = 20;
 
