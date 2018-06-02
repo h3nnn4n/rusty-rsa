@@ -1,5 +1,4 @@
 # Rusty RSA
-===========
 Rusty RSA is yet another rust reimplementation of RSA. It was a bad name (which most likely I am not the first one to use) and should not be used for anything serious (other than getting my grades).
 
 ## Usage
