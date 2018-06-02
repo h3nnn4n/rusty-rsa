@@ -48,7 +48,8 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
 pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bits: i64) {
     let mut file = File::open(path).unwrap();
     let mut out_file = File::create(out).unwrap();
-    let n_bytes = n_bits / 8 - 0;
+    //let n_bytes = n_bits / 8 - 0;
+    let n_bytes = 2;
 
     let mut in_buffer: Vec<Vec<u8>> = Vec::new();
     let mut out_buffer: Vec<Vec<u8>> = Vec::new();
@@ -169,6 +170,18 @@ pub fn decrypt_((d, n): (Integer, Integer), m: Integer) -> Integer {
     m.pow_mod(&d, &n).unwrap()
 }
 
+pub fn read_key_from_file(file_name: String) -> (Integer, Integer) {
+    let data = fs::read(file_name).expect("Unable to read file");
+    let decoded = &base64::decode(&data).unwrap();
+    let key_data = String::from_utf8_lossy(decoded);
+    let key_token = key_data.split(',').collect::<Vec<_>>();
+
+    let a = Integer::from_str_radix(key_token[0], 10).unwrap();
+    let b = Integer::from_str_radix(key_token[1], 10).unwrap();
+
+    (a, b)
+}
+
 pub fn get_last_pub_key() -> (Integer, Integer) {
     let data = fs::read("pub_key").expect("Unable to read file");
     let decoded = &base64::decode(&data).unwrap();
@@ -193,39 +206,45 @@ pub fn get_last_prv_key() -> (Integer, Integer) {
     (d, n)
 }
 
+pub fn gen_key_and_save_to_file(n_bits: i64, file_name: String) {
+    let (private, public) = get_key(n_bits);
+
+    let pub_str = base64::encode(&format!("{:?},{:?}", public.0, public.1));
+    let prv_str = base64::encode(&format!("{:?},{:?}", private.0, private.1));
+
+    let mut pub_file = File::create(format!("{}.pub", file_name)).unwrap();
+    let mut prv_file = File::create(format!("{}.prv", file_name)).unwrap();
+
+    pub_file.write(pub_str.as_bytes());
+    prv_file.write(prv_str.as_bytes());
+}
+
 pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
     // returns private, public
 
-    if true {
-        loop {
-            let p = big_primes::get_prime_with_n_bits(n_bits / 2);
-            let q = big_primes::get_prime_with_n_bits(n_bits / 2);
-            let n = Integer::from(&p * &q);
-            let tot = Integer::from(Integer::from(&p - 1) * Integer::from(&q - 1));
-            //let e = big_primes::get_prime_with_n_bits(16);
-            let e = Integer::from_str_radix("65537", 10).unwrap(); // Fixed public exponent
-            let d = mod_inv(e.clone(), tot.clone());
+    loop {
+        let p = big_primes::get_prime_with_n_bits(n_bits / 2);
+        let q = big_primes::get_prime_with_n_bits(n_bits / 2);
+        let n = Integer::from(&p * &q);
+        let tot = Integer::from(Integer::from(&p - 1) * Integer::from(&q - 1));
+        //let e = big_primes::get_prime_with_n_bits(16);
+        let e = Integer::from_str_radix("65537", 10).unwrap(); // Fixed public exponent
+        let d = mod_inv(e.clone(), tot.clone());
 
-            if n.significant_bits() as i64 == n_bits {
-                let (private, public) = ((d, n.clone()), (e, n));
+        if n.significant_bits() as i64 == n_bits {
+            let (private, public) = ((d, n.clone()), (e, n));
 
-                let pub_str = base64::encode(&format!("{:?},{:?}", public.0, public.1));
-                let prv_str = base64::encode(&format!("{:?},{:?}", private.0, private.1));
+            let pub_str = base64::encode(&format!("{:?},{:?}", public.0, public.1));
+            let prv_str = base64::encode(&format!("{:?},{:?}", private.0, private.1));
 
-                let mut pub_file = File::create("pub_key").unwrap();
-                let mut prv_file = File::create("prv_key").unwrap();
+            let mut pub_file = File::create("pub_key").unwrap();
+            let mut prv_file = File::create("prv_key").unwrap();
 
-                pub_file.write(pub_str.as_bytes());
-                prv_file.write(prv_str.as_bytes());
+            pub_file.write(pub_str.as_bytes());
+            prv_file.write(prv_str.as_bytes());
 
-                return (private, public);
-            }
+            return (private, public);
         }
-    } else {
-        return (
-            (Integer::from(13121), Integer::from(43739)),
-            (Integer::from(48761), Integer::from(43739)),
-        );
     }
 }
 
@@ -292,7 +311,7 @@ mod tests {
 
         let n_tries = 10;
         let n_keys = 20;
-        let n_messages = 5;
+        let n_messages = 20;
 
         for n_bits in [32, 64, 128].iter() {
             //for _ in 0..n_tries {

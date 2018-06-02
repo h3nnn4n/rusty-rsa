@@ -1,5 +1,7 @@
-use std::env;
+extern crate clap;
 
+use clap::{App, Arg, SubCommand};
+use std::env;
 mod big_primes;
 mod primes;
 mod rsa;
@@ -11,7 +13,7 @@ fn rsa_magic(n_bits: i64) {
     println!("{:?} {:?}", private, public);
 
     rsa::encrypt_file(
-        "test".to_string(),
+        "rsa.rs".to_string(),
         "test.enc".to_string(),
         public.clone(),
         n_bits,
@@ -30,15 +32,90 @@ fn rsa_magic(n_bits: i64) {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    println!("{:?}", args);
+    let matches = App::new("Rusty Rsa")
+        .version("0.1")
+        .author("Renan S Silva <uber.renan@gmail.com>")
+        .about("Does awesome mathy crypto things")
+        .arg(
+            Arg::with_name("INPUT")
+                .help("Sets the input file to use")
+                .required_unless("GEN")
+                .index(1),
+        )
+        .arg(
+            Arg::with_name("Encrypt")
+                .short("-e")
+                .long("--encrypt")
+                .conflicts_with("Decrypt")
+                .help("Encrypts a file using the specified key"),
+        )
+        .arg(
+            Arg::with_name("Decrypt")
+                .short("-d")
+                .long("--decrypt")
+                .conflicts_with("Encrypt")
+                .help("Decrypts a file using the specified key"),
+        )
+        .arg(
+            Arg::with_name("KEYSIZE")
+                .short("-b")
+                .long("--keysize")
+                .takes_value(true)
+                .help("Sets the keysize. Defaults to 32"),
+        )
+        .arg(
+            Arg::with_name("GEN")
+                .short("-g")
+                .long("--generate_key")
+                .requires("KEY")
+                .conflicts_with_all(&["Encrypt", "Decrypt"])
+                .help("Generates a new key pair"),
+        )
+        .arg(
+            Arg::with_name("KEY")
+                .short("-k")
+                .long("--key")
+                .takes_value(true)
+                .required_unless("GEN")
+                .help("Sets the key to be used."),
+        )
+        .get_matches();
 
-    let n_bits_try = args[1].parse();
-
-    let n_bits = match n_bits_try {
-        Ok(n) => n,
-        Err(_) => 24,
+    let n_bits = if matches.is_present("KEYSIZE") {
+        matches
+            .values_of("Keysize")
+            .unwrap()
+            .collect::<Vec<_>>()
+            .first()
+            .unwrap()
+            .parse::<i64>()
+            .expect("Keysize must be an integer value")
+    } else {
+        32_i64
     };
 
-    rsa_magic(n_bits);
+    let key_file_name = if matches.is_present("KEY") {
+        matches
+            .values_of("KEY")
+            .unwrap()
+            .collect::<Vec<_>>()
+            .first()
+            .unwrap()
+            .to_string()
+    } else {
+        "key".to_string()
+    };
+
+    if matches.is_present("GEN") {
+        rsa::gen_key_and_save_to_file(n_bits, key_file_name);
+    };
+
+    //if let Some(matches) = matches.is_present("Encrypt") {
+    //rsa::encrypt_file(
+    //"rsa.rs".to_string(),
+    //"test.enc".to_string(),
+    //public.clone(),
+    //n_bits,
+    //);
+    //}
 }
