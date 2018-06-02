@@ -331,33 +331,34 @@ mod tests {
         encrypt_decrypt_file_1024: 1024,
     }
 
-    #[test]
-    fn encrypt_decrypt_int() {
-        //let mut rng = rand::thread_rng();
+    fn encrypt_decrypt_int(n_bits: i64) -> bool {
+        let (private, public) = super::get_key(n_bits);
+        let m = big_primes::get_prime_with_n_bits(16);
 
-        //let n_tries = 10;
-        let n_keys = 20;
-        let n_messages = 20;
+        let c = encrypt_(public.clone(), m.clone());
+        let m2 = decrypt_(private.clone(), c.clone());
 
-        for n_bits in [32, 64, 128].iter() {
-            //for _ in 0..n_tries {
-            //let n_bits = rng.gen_range(16, 128);
-            for _ in 0..n_keys {
-                let (private, public) = super::get_key(*n_bits);
-                for _ in 0..n_messages {
-                    let m = big_primes::get_prime_with_n_bits(16);
+        m == m2
+    }
 
-                    let c = encrypt_(public.clone(), m.clone());
-                    let m2 = decrypt_(private.clone(), c.clone());
-
-                    assert_eq!(
-                        m, m2,
-                        "{:?}  priv: {:?}  pub: {:?}  c:{:?}",
-                        *n_bits, private, public, c
-                    );
-                }
+    macro_rules! enc_dec_int {
+    ($($name:ident: $value:expr,)*) => { $(
+        #[test]
+        fn $name() {
+            let n = $value;
+            for _ in 0..5 {
+                assert!(encrypt_decrypt_int(n));
             }
-        }
+        })*}
+    }
+
+    enc_dec_int! {
+        encrypt_decrypt_int_32: 32,
+        encrypt_decrypt_int_64: 64,
+        encrypt_decrypt_int_128: 128,
+        encrypt_decrypt_int_256: 256,
+        encrypt_decrypt_int_512: 512,
+        encrypt_decrypt_int_1024: 1024,
     }
 
     #[test]
