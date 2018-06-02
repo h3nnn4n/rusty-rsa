@@ -1,7 +1,6 @@
 extern crate clap;
 
-use clap::{App, Arg, SubCommand};
-use std::env;
+use clap::{App, Arg};
 mod big_primes;
 mod primes;
 mod rsa;

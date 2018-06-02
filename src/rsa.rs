@@ -2,8 +2,6 @@ extern crate base64;
 extern crate rand;
 extern crate rug;
 
-use self::base64::{decode, encode};
-use self::rand::{thread_rng, Rng};
 use self::rug::integer::Order;
 use self::rug::Integer;
 use std::cmp;
@@ -19,11 +17,10 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
     let mut out_file = File::create(out).unwrap();
     let n_bytes = n_bits / 8 - 0;
 
-    //println!("Bytes read - Digits - Buffer");
-
     loop {
         let mut buffer: Box<[u8]> = vec![0; n_bytes as usize].into_boxed_slice();
         let bytes_read = file.read(&mut buffer).unwrap();
+
         if bytes_read <= 0 {
             break;
         }
@@ -32,19 +29,11 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
         let c = decrypt_(priv_key.clone(), i.clone());
         let digits = c.to_digits::<u8>(Order::Lsf);
 
-        let bytes_wrote = out_file.write(&digits).unwrap();
-
-        //println!(
-        //"Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
-        //bytes_read,
-        //bytes_wrote,
-        //c.significant_bits(),
-        //digits,
-        //buffer,
-        //);
+        out_file.write(&digits).unwrap();
     }
 }
 
+#[allow(unused_variables)]
 pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bits: i64) {
     let mut file = File::open(path).unwrap();
     let mut out_file = File::create(out).unwrap();
@@ -54,13 +43,8 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
     let mut in_buffer: Vec<Vec<u8>> = Vec::new();
     let mut out_buffer: Vec<Vec<u8>> = Vec::new();
     let mut max_len: usize = 0;
-    let mut max_len_bytes: usize = 0;
-
-    let debug = false;
 
     let prv_key = get_last_prv_key();
-
-    //println!("Bytes read - Buffer - Digits");
 
     loop {
         let mut buffer: Box<[u8]> = vec![0; n_bytes as usize].into_boxed_slice();
@@ -79,45 +63,27 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         let _c = decrypt_(prv_key.clone(), _i.clone());
         let _digits = _c.to_digits::<u8>(Order::Lsf);
 
-        //if c >= pub_key.clone().1 {
-        //println!("Zoera detector detected zoera");
-        //}
-
-        //if digits.len() < max_len {
-        //println!("HAH! {} {}", digits.len(), max_len);
-        //}
-
-        //let bytes_wrote = out_file.write(&digits).unwrap();
-
-        //println!(
-        //"Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
-        //bytes_read,
-        //bytes_wrote,
-        //c.significant_bits() / 8,
-        //buffer,
-        //digits
-        //);
-
-        if i != _c || _i != c {
-            println!();
-            println!(
-                " Drift detected  ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
-                i, _c, _i, c, digits, _digits
-            );
-            println!();
+        if c >= pub_key.clone().1 {
+            println!("[ERR] Message is bigger than the key! Message will not be decryptable!");
         }
 
-        //assert_eq!(buffer.to_vec(), _digits);
+        if i != _c || _i != c {
+            //println!(
+            //"Drift detected  ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
+            //i, _c, _i, c, digits, _digits
+            //);
+            println!("[ERR] Check failed. Message will not be decryptable!");
+        }
+
         out_buffer.push(digits);
     }
 
-    for (k, b) in out_buffer.iter().enumerate() {
+    for b in out_buffer.iter() {
         let mut bytes_wrote;
         let mut bytes_written = 0;
         if b.len() < max_len {
             bytes_wrote = out_file.write(b).unwrap();
             let diff = max_len - b.len();
-            //println!("Detected a treta of size {}", diff);
             for _ in 0..diff {
                 let a = [0_u8; 1];
                 let bb = out_file.write(&a).unwrap();
@@ -126,11 +92,6 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         } else {
             bytes_wrote = out_file.write(b).unwrap();
         }
-
-        //println!(
-        //"Read {} bytes, wrote {} bytes, {}: {:?} {:?}",
-        //0, bytes_wrote, 0, b, in_buffer[k],
-        //);
 
         bytes_written += bytes_wrote;
 

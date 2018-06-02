@@ -44,7 +44,7 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     fn pollard_rho_minus_one_step(n: Integer) -> (Integer, Integer) {
         let mut x = get_number_with_n_bits((n.significant_bits() / 2) as i64);
         let mut y = x.clone();
-        let mut d = Integer::from(1);
+        let mut d: Integer;
         let one = Integer::from(1);
         let g = |x: Integer| (Integer::from(&x * &x) - Integer::from(1)) % n.clone();
 
@@ -69,7 +69,7 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     fn pollard_rho_plus_one_step(n: Integer) -> (Integer, Integer) {
         let mut x = get_number_with_n_bits((n.significant_bits() / 2) as i64);
         let mut y = x.clone();
-        let mut d = Integer::from(1);
+        let mut d: Integer;
         let one = Integer::from(1);
         let g = |x: Integer| (Integer::from(&x * &x) + Integer::from(1)) % n.clone();
 
@@ -118,7 +118,7 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
 
 pub fn get_number_with_n_bits(n_bits: i64) -> Integer {
     let consonants = b"01";
-    let mut value: Integer;
+    let value: Integer;
 
     loop {
         let mut result = String::new();
@@ -178,7 +178,7 @@ pub fn ninja_factor(n: Integer) -> (Integer, Integer) {
 }
 
 pub fn power(a: Integer, n: Integer, m: Integer) -> Integer {
-    let mut n_ = a.clone();
+    let n_ = a.clone();
     let e_ = n.clone();
     let m_ = m.clone();
 
