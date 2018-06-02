@@ -332,7 +332,7 @@ mod tests {
         assert_eq!(super::mod_inv(Integer::from(42), Integer::from(2017)), 1969);
     }
 
-    #[test]
+    //#[test]
     fn write_last_key() {
         let n_bits = 256;
 
