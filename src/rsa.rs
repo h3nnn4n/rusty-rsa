@@ -140,7 +140,7 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
 
 fn mod_inv(a: Integer, module: Integer) -> Integer {
     let mut n = a.clone();
-    let check = n.invert_mut(&module.clone());
+    n.invert_mut(&module.clone());
 
     let mut mn = (module.clone(), a.clone());
     let mut xy = (Integer::from(0), Integer::from(1));
