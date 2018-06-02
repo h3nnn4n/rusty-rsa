@@ -219,6 +219,18 @@ pub fn gen_key_and_save_to_file(n_bits: i64, file_name: String) {
     prv_file.write(prv_str.as_bytes());
 }
 
+pub fn get_key_from_file(file_name: String) -> (Integer, Integer) {
+    let data = fs::read(file_name).expect("Unable to read file");
+    let decoded = &base64::decode(&data).unwrap();
+    let key_data = String::from_utf8_lossy(decoded);
+    let key_token = key_data.split(',').collect::<Vec<_>>();
+
+    let a = Integer::from_str_radix(key_token[0], 10).unwrap();
+    let b = Integer::from_str_radix(key_token[1], 10).unwrap();
+
+    (a, b)
+}
+
 pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
     // returns private, public
 

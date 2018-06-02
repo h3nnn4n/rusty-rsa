@@ -43,14 +43,14 @@ fn main() {
                 .index(1),
         )
         .arg(
-            Arg::with_name("Encrypt")
+            Arg::with_name("ENCRYPT")
                 .short("-e")
                 .long("--encrypt")
                 .conflicts_with("Decrypt")
                 .help("Encrypts a file using the specified key"),
         )
         .arg(
-            Arg::with_name("Decrypt")
+            Arg::with_name("DECRYPT")
                 .short("-d")
                 .long("--decrypt")
                 .conflicts_with("Encrypt")
@@ -81,9 +81,21 @@ fn main() {
         )
         .get_matches();
 
+    let file_name = if matches.is_present("INPUT") {
+        matches
+            .values_of("INPUT")
+            .unwrap()
+            .collect::<Vec<_>>()
+            .first()
+            .unwrap()
+            .to_string()
+    } else {
+        "".to_string()
+    };
+
     let n_bits = if matches.is_present("KEYSIZE") {
         matches
-            .values_of("Keysize")
+            .values_of("KEYSIZE")
             .unwrap()
             .collect::<Vec<_>>()
             .first()
@@ -107,15 +119,24 @@ fn main() {
     };
 
     if matches.is_present("GEN") {
-        rsa::gen_key_and_save_to_file(n_bits, key_file_name);
+        rsa::gen_key_and_save_to_file(n_bits, key_file_name.clone());
     };
 
-    //if let Some(matches) = matches.is_present("Encrypt") {
-    //rsa::encrypt_file(
-    //"rsa.rs".to_string(),
-    //"test.enc".to_string(),
-    //public.clone(),
-    //n_bits,
-    //);
-    //}
+    if matches.is_present("ENCRYPT") {
+        rsa::encrypt_file(
+            file_name.clone(),
+            format!("{}.enc", file_name.clone()),
+            rsa::get_key_from_file(key_file_name.clone()),
+            n_bits,
+        );
+    }
+
+    if matches.is_present("DECRYPT") {
+        rsa::decrypt_file(
+            file_name.clone(),
+            format!("{}.dec", file_name.clone()),
+            rsa::get_key_from_file(key_file_name.clone()),
+            n_bits,
+        );
+    }
 }
