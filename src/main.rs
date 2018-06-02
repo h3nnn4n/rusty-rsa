@@ -122,6 +122,8 @@ fn main() {
         rsa::gen_key_and_save_to_file(n_bits, key_file_name.clone());
     };
 
+    let file_name_len = file_name.len();
+
     if matches.is_present("ENCRYPT") {
         rsa::encrypt_file(
             file_name.clone(),
@@ -132,9 +134,10 @@ fn main() {
     }
 
     if matches.is_present("DECRYPT") {
+        let mut ff = file_name.clone();
         rsa::decrypt_file(
             file_name.clone(),
-            format!("{}.dec", file_name.clone()),
+            format!("{}.dec", ff.drain(0..file_name_len - 4).collect::<String>()),
             rsa::get_key_from_file(key_file_name.clone()),
             n_bits,
         );
