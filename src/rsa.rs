@@ -97,7 +97,8 @@ pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bi
         //digits
         //);
 
-        if buffer.to_vec() != _digits {
+        if i != _c || _i != c {
+            println!();
             println!(
                 " ->  {:?} = {:?}       {:?} = {:?}   d: {:?} {:?}",
                 i, _c, _i, c, digits, _digits
