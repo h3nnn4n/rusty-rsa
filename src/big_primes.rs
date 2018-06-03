@@ -38,7 +38,6 @@ pub fn prime_factorization_brute_force(x: Integer) -> Vec<Integer> {
 pub fn prime_factorization_fermats(n: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
 
-    //FermatFactor(N): // N should be odd
     assert!(n.is_odd());
 
     factors.push(Integer::from(1));
@@ -46,22 +45,15 @@ pub fn prime_factorization_fermats(n: Integer) -> Vec<Integer> {
 
     let one = Integer::from(1);
 
-    //a ← ceil(sqrt(N))
     let mut a = Integer::from(n.sqrt_ref());
 
-    //b2 ← a*a - N
     let mut b2 = Integer::from(Integer::from(&a * &a) - &n);
 
-    //while b2 is not a square:
     while !b2.is_perfect_square() {
-        //    a ← a + 1    // equivalently: b2 ← b2 + 2*a + 1
         a = Integer::from(&a + &one);
-        //    b2 ← a*a - N //               a ← a + 1
         b2 = Integer::from(Integer::from(&a * &a) - &n);
-        //endwhile
     }
 
-    //return a - sqrt(b2) // or a + sqrt(b2)
     factors.push(Integer::from(&a - Integer::from(b2.sqrt_ref())));
     factors.push(Integer::from(&a + Integer::from(b2.sqrt_ref())));
 
