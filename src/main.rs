@@ -1,6 +1,7 @@
 extern crate clap;
 
 use clap::{App, Arg};
+use std::time::Instant;
 mod big_primes;
 mod primes;
 mod rsa;
@@ -14,21 +15,21 @@ fn main() {
         .arg(
             Arg::with_name("INPUT")
                 .help("Sets the input file to use")
-                .required_unless("GEN")
+                .required_unless_one(&["GEN", "BRUTE", "POLLARD"])
                 .index(1),
         )
         .arg(
             Arg::with_name("ENCRYPT")
                 .short("-e")
                 .long("--encrypt")
-                .conflicts_with("Decrypt")
+                .conflicts_with("DECRYPT")
                 .help("Encrypts a file using the specified key"),
         )
         .arg(
             Arg::with_name("DECRYPT")
                 .short("-d")
                 .long("--decrypt")
-                .conflicts_with("Encrypt")
+                .conflicts_with("ENCRYPT")
                 .help("Decrypts a file using the specified key"),
         )
         .arg(
@@ -43,7 +44,7 @@ fn main() {
                 .short("-g")
                 .long("--generate_key")
                 .requires("KEY")
-                .conflicts_with_all(&["Encrypt", "Decrypt"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT"])
                 .help("Generates a new key pair"),
         )
         .arg(
@@ -53,6 +54,18 @@ fn main() {
                 .takes_value(true)
                 .required_unless("GEN")
                 .help("Sets the key to be used."),
+        )
+        .arg(
+            Arg::with_name("BRUTE")
+                .long("--bruteforce")
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "POLLARD"])
+                .help("Breaks a public key using simple and dumb factorization"),
+        )
+        .arg(
+            Arg::with_name("POLLARD")
+                .long("--pollardrho")
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE"])
+                .help("Breaks a public key using pollard-rho plus one and minus one heuristic"),
         )
         .get_matches();
 
@@ -115,6 +128,41 @@ fn main() {
             format!("{}.dec", ff.drain(0..file_name_len - 4).collect::<String>()),
             rsa::get_key_from_file(key_file_name.clone()),
             n_bits,
+        );
+    }
+
+    if matches.is_present("BRUTE") || matches.is_present("POLLARD") {
+        let (_, modulus) = rsa::get_key_from_file(key_file_name.clone());
+        let is_pollard = matches.is_present("POLLARD");
+
+        let t_start = Instant::now();
+        let factors = if is_pollard {
+            big_primes::prime_factorization_pollard_rho(modulus)
+        } else {
+            big_primes::prime_factorization_brute_force(modulus)
+        };
+        let t_end = Instant::now();
+
+        let diff = t_end.duration_since(t_start);
+
+        assert_eq!(factors.len(), 4);
+
+        println!("{:?}.{:?}", diff.as_secs(), diff.subsec_micros());
+
+        let p = factors[1].clone();
+        let q = factors[2].clone();
+
+        //println!("{:?} {:?}", p, q);
+
+        let key_file_name_len = key_file_name.len();
+        let mut broken_key = key_file_name.clone();
+
+        rsa::get_prv_key_from_pq_and_dump_to_file(
+            p,
+            q,
+            broken_key
+                .drain(0..key_file_name_len - 4)
+                .collect::<String>(),
         );
     }
 }

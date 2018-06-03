@@ -41,17 +41,22 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     factors.push(Integer::from(1));
     factors.push(n.clone());
 
-    fn pollard_rho_minus_one_step(n: Integer) -> (Integer, Integer) {
-        let mut x = get_number_with_n_bits((n.significant_bits() / 2) as i64);
+    fn pollard_rho_plus_one_step(n: Integer, k: Integer) -> (Integer, Integer) {
+        let mut x = get_number_with_n_bits((n.significant_bits() / 10) as i64);
         let mut y = x.clone();
         let mut d: Integer;
         let one = Integer::from(1);
-        let g = |x: Integer| (Integer::from(&x * &x) - Integer::from(1)) % n.clone();
+        let g = |x: Integer| Integer::from(Integer::from(&x * &x) + &k) % n.clone();
 
         loop {
             x = g(x);
+            //x = Integer::from(&x.pow(2) + &k) % n.clone();
+
             y = g(g(y));
-            d = Integer::from((x.clone() - y.clone()).abs());
+            //y = Integer::from(&y.pow(2) + &k) % n.clone();
+            //y = Integer::from(&y.pow(2) + &k) % n.clone();
+
+            d = Integer::from(Integer::from(&x - &y).abs());
             d = d.gcd(&n.clone());
 
             if d != one {
@@ -66,37 +71,15 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
         }
     }
 
-    fn pollard_rho_plus_one_step(n: Integer) -> (Integer, Integer) {
-        let mut x = get_number_with_n_bits((n.significant_bits() / 2) as i64);
-        let mut y = x.clone();
-        let mut d: Integer;
-        let one = Integer::from(1);
-        let g = |x: Integer| (Integer::from(&x * &x) + Integer::from(1)) % n.clone();
-
-        loop {
-            x = g(x);
-            y = g(g(y));
-            d = Integer::from((x.clone() - y.clone()).abs());
-            d = d.gcd(&n.clone());
-
-            if d != one {
-                break;
-            }
-        }
-
-        if d == n {
-            return (one, n.clone());
+    let mut i = 1;
+    while factors.len() < 4 {
+        let x = if i % 2 == 0 {
+            Integer::from(i / 2)
         } else {
-            return (d.clone(), n.clone() / d.clone());
-        }
-    }
-
-    for i in 0..10 {
-        let (p, q) = if i % 2 == 0 {
-            pollard_rho_minus_one_step(n.clone())
-        } else {
-            pollard_rho_plus_one_step(n.clone())
+            get_number_with_n_bits(5_i64)
         };
+
+        let (p, q) = pollard_rho_plus_one_step(n.clone(), x);
 
         if !factors.contains(&p) {
             factors.push(p.clone());
@@ -109,6 +92,8 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
         if !factors.contains(&q) {
             factors.push(q);
         }
+
+        i += 1;
     }
 
     factors.sort();
