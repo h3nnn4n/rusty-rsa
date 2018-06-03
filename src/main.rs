@@ -15,7 +15,7 @@ fn main() {
         .arg(
             Arg::with_name("INPUT")
                 .help("Sets the input file to use")
-                .required_unless_one(&["GEN", "BRUTE", "POLLARD", "FERMAT"])
+                .required_unless_one(&["GEN", "BRUTE", "POLLARD", "FERMAT", "FERMAT_RAW"])
                 .index(1),
         )
         .arg(
@@ -72,6 +72,12 @@ fn main() {
                 .long("--fermat")
                 .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD"])
                 .help("Breaks a public key using Fermat's factorization"),
+        )
+        .arg(
+            Arg::with_name("FERMAT_RAW")
+                .long("--fermat_raw")
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD", "FERMAT"])
+                .help("Breaks a public key using Fermat's factorization with an unsafe implementation"),
         )
         .get_matches();
 
@@ -140,19 +146,22 @@ fn main() {
     let brute = matches.is_present("BRUTE");
     let pollard = matches.is_present("POLLARD");
     let fermat = matches.is_present("FERMAT");
+    let fermat_raw = matches.is_present("FERMAT_RAW");
 
-    if brute || pollard || fermat {
+    if brute || pollard || fermat || fermat_raw {
         let (_, modulus) = rsa::get_key_from_file(key_file_name.clone());
 
         let t_start = Instant::now();
         let factors = if pollard {
             big_primes::prime_factorization_pollard_rho(modulus)
+        } else if fermat {
+            big_primes::prime_factorization_fermats(modulus)
+        } else if fermat_raw {
+            big_primes::prime_factorization_fermats_raw(modulus)
+        } else if brute {
+            big_primes::prime_factorization_brute_force(modulus)
         } else {
-            if fermat {
-                big_primes::prime_factorization_fermats(modulus)
-            } else {
-                big_primes::prime_factorization_brute_force(modulus)
-            }
+            unreachable!();
         };
 
         let t_end = Instant::now();
