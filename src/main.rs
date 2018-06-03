@@ -65,7 +65,7 @@ fn main() {
             Arg::with_name("POLLARD")
                 .long("--pollardrho")
                 .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE"])
-                .help("Breaks a public key using pollard-rho plus one and minus one heuristic"),
+                .help("Breaks a public key using pollard-rho heuristic"),
         )
         .arg(
             Arg::with_name("FERMAT")
