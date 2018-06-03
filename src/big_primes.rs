@@ -1,6 +1,9 @@
 #![allow(dead_code)]
+extern crate gmp_mpfr_sys;
 extern crate rand;
 extern crate rug;
+
+use self::gmp_mpfr_sys::gmp;
 use self::rand::{thread_rng, Rng};
 use self::rug::ops::Pow;
 use self::rug::rand::RandState;
@@ -35,6 +38,37 @@ pub fn prime_factorization_brute_force(x: Integer) -> Vec<Integer> {
     factors
 }
 
+pub fn prime_factorization_fermats_raw(n: Integer) -> Vec<Integer> {
+    let mut factors: Vec<Integer> = Vec::new();
+
+    assert!(n.is_odd());
+
+    factors.push(Integer::from(1));
+    factors.push(n.clone());
+
+    let mut a = Integer::from(n.sqrt_ref());
+    let mut b2 = Integer::from(Integer::from(&a * &a) - &n);
+
+    let n_ = n.clone().as_raw_mut();
+    let a_ = a.as_raw_mut();
+    let b2_ = b2.as_raw_mut();
+
+    unsafe {
+        while gmp::mpz_perfect_square_p(b2_) == 0 {
+            gmp::mpz_add_ui(a_, a_, 1);
+            gmp::mpz_pow_ui(b2_, a_, 2);
+            gmp::mpz_sub(b2_, b2_, n_);
+        }
+    };
+
+    factors.push(Integer::from(&a - Integer::from(b2.sqrt_ref())));
+    factors.push(Integer::from(&a + Integer::from(b2.sqrt_ref())));
+
+    factors.sort();
+
+    factors
+}
+
 pub fn prime_factorization_fermats(n: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
 
@@ -44,9 +78,7 @@ pub fn prime_factorization_fermats(n: Integer) -> Vec<Integer> {
     factors.push(n.clone());
 
     let one = Integer::from(1);
-
     let mut a = Integer::from(n.sqrt_ref());
-
     let mut b2 = Integer::from(Integer::from(&a * &a) - &n);
 
     while !b2.is_perfect_square() {
