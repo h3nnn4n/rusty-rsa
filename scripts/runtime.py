@@ -1,5 +1,6 @@
 from subprocess import Popen, PIPE
 import numpy as np
+import sys
 
 process = Popen(["cargo", "build", "--release"], stdout=PIPE)
 (output, err) = process.communicate()
@@ -20,12 +21,13 @@ for mode in modes:
         data[mode][bit] = []
 
         print("%20s %5d" % (mode, bit))
-
-        process = Popen(["../target/release/rsa_lixo", "--keysize", str(bit), "--key", "key", "--generate_key"], stdout=PIPE)
-        (output, err) = process.communicate()
-        exit_code = process.wait()
+        sys.stdout.flush()
 
         for r in range(0, repeats):
+            process = Popen(["../target/release/rsa_lixo", "--keysize", str(bit), "--key", "key", "--generate_key"], stdout=PIPE)
+            (output, err) = process.communicate()
+            exit_code = process.wait()
+
             process = Popen(["../target/release/rsa_lixo", "--key", "key.pub", "--%s" % mode], stdout=PIPE)
             (output, err) = process.communicate()
             exit_code = process.wait()
