@@ -26,3 +26,12 @@ rsa_lixo --keysize 256 --key totoro.prv --decrypt secret_file.enc
 ```
 
 This decrypts the file. Works similar to `encrypt`.
+
+### Breaking Keys
+
+```
+rsa_lixo --key novo.pub --METHOD
+```
+
+Where __method__ is one of the following: `bruteforce`, `pollardrho` or `fermats`. This will factor (eventually) the RSA modulus and generate the private key based on that. Pollard rho method can break keys up to 80 or 100
+bits depending on the hardware being run.
