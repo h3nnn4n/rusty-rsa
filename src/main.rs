@@ -15,7 +15,7 @@ fn main() {
         .arg(
             Arg::with_name("INPUT")
                 .help("Sets the input file to use")
-                .required_unless_one(&["GEN", "BRUTE", "POLLARD"])
+                .required_unless_one(&["GEN", "BRUTE", "POLLARD", "FERMAT"])
                 .index(1),
         )
         .arg(
@@ -66,6 +66,12 @@ fn main() {
                 .long("--pollardrho")
                 .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE"])
                 .help("Breaks a public key using pollard-rho plus one and minus one heuristic"),
+        )
+        .arg(
+            Arg::with_name("FERMAT")
+                .long("--fermat")
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD"])
+                .help("Breaks a public key using Fermat's factorization"),
         )
         .get_matches();
 
@@ -131,16 +137,24 @@ fn main() {
         );
     }
 
-    if matches.is_present("BRUTE") || matches.is_present("POLLARD") {
+    let brute = matches.is_present("BRUTE");
+    let pollard = matches.is_present("POLLARD");
+    let fermat = matches.is_present("FERMAT");
+
+    if brute || pollard || fermat {
         let (_, modulus) = rsa::get_key_from_file(key_file_name.clone());
-        let is_pollard = matches.is_present("POLLARD");
 
         let t_start = Instant::now();
-        let factors = if is_pollard {
+        let factors = if pollard {
             big_primes::prime_factorization_pollard_rho(modulus)
         } else {
-            big_primes::prime_factorization_brute_force(modulus)
+            if fermat {
+                big_primes::prime_factorization_fermats(modulus)
+            } else {
+                big_primes::prime_factorization_brute_force(modulus)
+            }
         };
+
         let t_end = Instant::now();
 
         let diff = t_end.duration_since(t_start);
