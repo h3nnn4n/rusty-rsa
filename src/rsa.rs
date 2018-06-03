@@ -213,38 +213,31 @@ pub fn get_prv_key_from_pq_and_dump_to_file(
     p: Integer,
     q: Integer,
     name: String,
-) -> ((Integer, Integer), (Integer, Integer)) {
+) -> (Integer, Integer) {
     let n = Integer::from(&p * &q);
     let tot = Integer::from(Integer::from(&p - 1) * Integer::from(&q - 1));
-    //let e = big_primes::get_prime_with_n_bits(16);
     let e = Integer::from_str_radix("65537", 10).unwrap(); // Fixed public exponent
     let d = mod_inv(e.clone(), tot.clone());
 
-    let (private, public) = ((d, n.clone()), (e, n));
+    let private = (d, n.clone());
 
-    let pub_str = base64::encode(&format!("{:?},{:?}", public.0, public.1));
     let prv_str = base64::encode(&format!("{:?},{:?}", private.0, private.1));
 
-    let mut pub_file = File::create(name.clone() + ".pub").unwrap();
     let mut prv_file = File::create(name.clone() + ".prv").unwrap();
-
-    match pub_file.write(pub_str.as_bytes()) {
-        Ok(_) => (),
-        Err(_) => println!("[WRN] Failed to write private key to file"),
-    }
 
     match prv_file.write(prv_str.as_bytes()) {
         Ok(_) => (),
         Err(_) => println!("[WRN] Failed to write private key to file"),
     }
 
-    return (private, public);
+    return private;
 }
 
 pub fn get_key(n_bits: i64) -> ((Integer, Integer), (Integer, Integer)) {
     // returns private, public
 
     loop {
+        // Ensures that the key is exactly n_bits in size
         let p = big_primes::get_prime_with_n_bits(n_bits / 2);
         let q = big_primes::get_prime_with_n_bits(n_bits / 2);
         let n = Integer::from(&p * &q);
