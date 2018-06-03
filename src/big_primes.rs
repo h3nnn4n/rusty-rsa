@@ -94,6 +94,62 @@ pub fn prime_factorization_fermats(n: Integer) -> Vec<Integer> {
     factors
 }
 
+pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
+    let mut factors: Vec<Integer> = Vec::new();
+
+    factors.push(Integer::from(1));
+    factors.push(n.clone());
+
+    fn pollard_rho_plus_one_step(n: Integer, k: Integer) -> (Integer, Integer) {
+        let mut s = n.significant_bits() / 10;
+
+        if s <= 2 {
+            s = n.significant_bits() / 2;
+        }
+
+        let one = Integer::from(1);
+        let mut x = get_number_with_n_bits(s as i64);
+        let mut y = x.clone();
+        let mut d: Integer = Integer::from(1);
+
+        let _x = x.as_raw_mut();
+        let _y = y.as_raw_mut();
+        let _k = k.clone().as_raw_mut();
+        let _d = d.as_raw_mut();
+        let _n = n.clone().as_raw_mut();
+
+        unsafe {
+            while gmp::mpz_cmp_ui(_d, 1) == 0 {
+                gmp::mpz_pow_ui(_x, _x, 2);
+                gmp::mpz_add(_x, _x, _k);
+                gmp::mpz_mod(_x, _x, _n);
+
+                gmp::mpz_pow_ui(_y, _y, 2);
+                gmp::mpz_add(_y, _y, _k);
+                gmp::mpz_mod(_y, _y, _n);
+
+                gmp::mpz_pow_ui(_y, _y, 2);
+                gmp::mpz_add(_y, _y, _k);
+                gmp::mpz_mod(_y, _y, _n);
+
+                gmp::mpz_sub(_d, _x, _y);
+                gmp::mpz_abs(_d, _d);
+                gmp::mpz_gcd(_d, _d, _n);
+            }
+        }
+
+        if d == n {
+            return (one, n.clone());
+        } else {
+            return (d.clone(), n.clone() / d.clone());
+        }
+    }
+
+    factors.sort();
+
+    factors
+}
+
 pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
 
