@@ -145,6 +145,31 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
         }
     }
 
+    let mut i = 1;
+    while factors.len() < 4 {
+        let x = if i % 2 == 0 {
+            Integer::from(i / 2)
+        } else {
+            get_number_with_n_bits(5_i64)
+        };
+
+        let (p, q) = pollard_rho_plus_one_step(n.clone(), x);
+
+        if !factors.contains(&p) {
+            factors.push(p.clone());
+
+            if p == q.clone() {
+                factors.push(q.clone());
+            }
+        }
+
+        if !factors.contains(&q) {
+            factors.push(q);
+        }
+
+        i += 1;
+    }
+
     factors.sort();
 
     factors
