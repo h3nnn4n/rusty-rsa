@@ -100,17 +100,22 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
     factors.push(Integer::from(1));
     factors.push(n.clone());
 
-    fn pollard_rho_plus_one_step(n: Integer, k: Integer) -> (Integer, Integer) {
-        let mut s = n.significant_bits() / 10;
+    fn pollard_rho_step(n: Integer, k: Integer) -> (Integer, Integer) {
+        let mut s = n.significant_bits() / 2;
 
         if s <= 2 {
-            s = n.significant_bits() / 2;
+            s = 3;
         }
 
         let one = Integer::from(1);
         let mut x = get_number_with_n_bits(s as i64);
         let mut y = x.clone();
         let mut d: Integer = Integer::from(1);
+
+        let g = |x: Integer| Integer::from(Integer::from(&x * &x) + &k) % n.clone();
+
+        let mut x_ = x.clone();
+        let mut y_ = y.clone();
 
         let _x = x.as_raw_mut();
         let _y = y.as_raw_mut();
@@ -124,6 +129,9 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
                 gmp::mpz_add(_x, _x, _k);
                 gmp::mpz_mod(_x, _x, _n);
 
+                //x_ = g(x_);
+                //assert_eq!(x_, x);
+
                 gmp::mpz_pow_ui(_y, _y, 2);
                 gmp::mpz_add(_y, _y, _k);
                 gmp::mpz_mod(_y, _y, _n);
@@ -131,6 +139,9 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
                 gmp::mpz_pow_ui(_y, _y, 2);
                 gmp::mpz_add(_y, _y, _k);
                 gmp::mpz_mod(_y, _y, _n);
+
+                //y_ = g(g(y_));
+                //assert_eq!(y_, y);
 
                 gmp::mpz_sub(_d, _x, _y);
                 gmp::mpz_abs(_d, _d);
@@ -153,7 +164,7 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
             get_number_with_n_bits(5_i64)
         };
 
-        let (p, q) = pollard_rho_plus_one_step(n.clone(), x);
+        let (p, q) = pollard_rho_step(n.clone(), x);
 
         if !factors.contains(&p) {
             factors.push(p.clone());
@@ -181,7 +192,7 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     factors.push(Integer::from(1));
     factors.push(n.clone());
 
-    fn pollard_rho_plus_one_step(n: Integer, k: Integer) -> (Integer, Integer) {
+    fn pollard_rho_step(n: Integer, k: Integer) -> (Integer, Integer) {
         let mut s = n.significant_bits() / 10;
 
         if s <= 2 {
@@ -225,7 +236,7 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
             get_number_with_n_bits(5_i64)
         };
 
-        let (p, q) = pollard_rho_plus_one_step(n.clone(), x);
+        let (p, q) = pollard_rho_step(n.clone(), x);
 
         if !factors.contains(&p) {
             factors.push(p.clone());
@@ -422,6 +433,22 @@ mod tests {
     }
 
     #[test]
+    fn pollard_rho_raw_factorization() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(10);
+            let n = get_prime_with_n_bits(15);
+
+            let p = Integer::from(&m * &n);
+
+            let mut q = vec![Integer::from(1), m, n, p.clone()];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_pollard_rho_raw(p), q);
+        }
+    }
+
+    #[test]
     fn pollard_rho_factorization() {
         for _ in 0..10 {
             let m = get_prime_with_n_bits(10);
@@ -438,6 +465,37 @@ mod tests {
     }
 
     #[test]
+    fn pollard_rho_factorization_equal() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(10);
+            let n = get_prime_with_n_bits(15);
+
+            let p = Integer::from(&m * &n);
+
+            assert_eq!(
+                prime_factorization_pollard_rho(p.clone()),
+                prime_factorization_pollard_rho_raw(p)
+            );
+        }
+    }
+
+    #[test]
+    fn fermats_raw_factorization() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(20);
+            let n = get_prime_with_n_bits(20);
+
+            let p = Integer::from(&m * &n);
+
+            let mut q = vec![Integer::from(1), m, n, p.clone()];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_fermats_raw(p), q);
+        }
+    }
+
+    #[test]
     fn fermats_factorization() {
         for _ in 0..10 {
             let m = get_prime_with_n_bits(20);
@@ -450,6 +508,21 @@ mod tests {
             q.sort();
 
             assert_eq!(prime_factorization_fermats(p), q);
+        }
+    }
+
+    #[test]
+    fn fermats_factorization_equal() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(20);
+            let n = get_prime_with_n_bits(20);
+
+            let p = Integer::from(&m * &n);
+
+            assert_eq!(
+                prime_factorization_fermats(p.clone()),
+                prime_factorization_fermats_raw(p)
+            );
         }
     }
 

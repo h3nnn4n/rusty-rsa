@@ -177,7 +177,7 @@ fn main() {
 
         let diff = t_end.duration_since(t_start);
 
-        assert_eq!(factors.len(), 4);
+        assert_eq!(factors.len(), 4, "{:?}", factors);
 
         println!("{:?}.{:?}", diff.as_secs(), diff.subsec_micros());
 
