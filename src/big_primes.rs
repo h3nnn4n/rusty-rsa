@@ -113,9 +113,6 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
         let mut y = x.clone();
         let mut d: Integer = Integer::from(1);
 
-        let mut x_ = x.clone();
-        let mut y_ = y.clone();
-
         let mut kk = k.clone();
         let mut nn = n.clone();
 

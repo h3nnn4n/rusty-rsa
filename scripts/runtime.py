@@ -6,10 +6,10 @@ process = Popen(["cargo", "build", "--release"], stdout=PIPE)
 (output, err) = process.communicate()
 exit_code = process.wait()
 
-t_limit = 20
+t_limit = 60
 repeats = 10
 bits = [ 4 * i for i in range(1, 40)]
-modes = ['pollardrho', 'fermat', 'bruteforce']
+modes = ['pollardrho', 'fermat', 'bruteforce', 'pollardrho_raw', 'fermat_raw']
 data = {}
 
 for mode in modes:
@@ -20,8 +20,7 @@ for mode in modes:
     for bit in bits:
         data[mode][bit] = []
 
-        print("%20s %5d" % (mode, bit))
-        sys.stdout.flush()
+        t = 0
 
         for r in range(0, repeats):
             process = Popen(["../target/release/rsa_lixo", "--keysize", str(bit), "--key", "key", "--generate_key"], stdout=PIPE)
@@ -44,6 +43,9 @@ for mode in modes:
                 break
             else:
                 data[mode][bit].append(t)
+
+        print("%20s %5d %6.3f" % (mode, bit, t))
+        sys.stdout.flush()
 
         if stop:
             break
