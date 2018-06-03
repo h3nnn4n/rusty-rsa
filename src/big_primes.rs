@@ -49,7 +49,8 @@ pub fn prime_factorization_fermats_raw(n: Integer) -> Vec<Integer> {
     let mut a = Integer::from(n.sqrt_ref());
     let mut b2 = Integer::from(Integer::from(&a * &a) - &n);
 
-    let n_ = n.clone().as_raw_mut();
+    let mut nn = n.clone();
+    let n_ = nn.as_raw_mut();
     let a_ = a.as_raw_mut();
     let b2_ = b2.as_raw_mut();
 
@@ -104,7 +105,7 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
         let mut s = n.significant_bits() / 2;
 
         if s <= 2 {
-            s = 3;
+            s = n.significant_bits() / 2;
         }
 
         let one = Integer::from(1);
@@ -112,16 +113,17 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
         let mut y = x.clone();
         let mut d: Integer = Integer::from(1);
 
-        let g = |x: Integer| Integer::from(Integer::from(&x * &x) + &k) % n.clone();
-
         let mut x_ = x.clone();
         let mut y_ = y.clone();
 
+        let mut kk = k.clone();
+        let mut nn = n.clone();
+
         let _x = x.as_raw_mut();
         let _y = y.as_raw_mut();
-        let _k = k.clone().as_raw_mut();
+        let _k = kk.as_raw_mut();
         let _d = d.as_raw_mut();
-        let _n = n.clone().as_raw_mut();
+        let _n = nn.as_raw_mut();
 
         unsafe {
             while gmp::mpz_cmp_ui(_d, 1) == 0 {
@@ -129,9 +131,6 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
                 gmp::mpz_add(_x, _x, _k);
                 gmp::mpz_mod(_x, _x, _n);
 
-                //x_ = g(x_);
-                //assert_eq!(x_, x);
-
                 gmp::mpz_pow_ui(_y, _y, 2);
                 gmp::mpz_add(_y, _y, _k);
                 gmp::mpz_mod(_y, _y, _n);
@@ -139,9 +138,6 @@ pub fn prime_factorization_pollard_rho_raw(n: Integer) -> Vec<Integer> {
                 gmp::mpz_pow_ui(_y, _y, 2);
                 gmp::mpz_add(_y, _y, _k);
                 gmp::mpz_mod(_y, _y, _n);
-
-                //y_ = g(g(y_));
-                //assert_eq!(y_, y);
 
                 gmp::mpz_sub(_d, _x, _y);
                 gmp::mpz_abs(_d, _d);
@@ -522,6 +518,36 @@ mod tests {
             assert_eq!(
                 prime_factorization_fermats(p.clone()),
                 prime_factorization_fermats_raw(p)
+            );
+        }
+    }
+
+    #[test]
+    fn pollard_rho_raw_equals_fermats() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(20);
+            let n = get_prime_with_n_bits(20);
+
+            let p = Integer::from(&m * &n);
+
+            assert_eq!(
+                prime_factorization_fermats(p.clone()),
+                prime_factorization_pollard_rho_raw(p)
+            );
+        }
+    }
+
+    #[test]
+    fn fermats_raw_factorization_equals_pollard_rho() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(20);
+            let n = get_prime_with_n_bits(20);
+
+            let p = Integer::from(&m * &n);
+
+            assert_eq!(
+                prime_factorization_fermats_raw(p.clone()),
+                prime_factorization_pollard_rho(p)
             );
         }
     }
