@@ -69,7 +69,13 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     factors.push(n.clone());
 
     fn pollard_rho_plus_one_step(n: Integer, k: Integer) -> (Integer, Integer) {
-        let mut x = get_number_with_n_bits((n.significant_bits() / 10) as i64);
+        let mut s = n.significant_bits() / 10;
+
+        if s <= 2 {
+            s = n.significant_bits() / 2;
+        }
+
+        let mut x = get_number_with_n_bits(s as i64);
         let mut y = x.clone();
         let mut d: Integer;
         let one = Integer::from(1);
