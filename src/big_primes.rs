@@ -8,6 +8,65 @@ use self::rand::{thread_rng, Rng};
 use self::rug::ops::Pow;
 use self::rug::rand::RandState;
 use self::rug::Integer;
+use std::collections::HashMap;
+
+pub fn prime_factorization_brute_force_raw(x: Integer) -> Vec<Integer> {
+    let mut factors: Vec<Integer> = Vec::new();
+    let mut p = Integer::new();
+    let mut a = Integer::new();
+    let mut stop = Integer::from(x.clone().sqrt());
+
+    if x.clone() % 2 == 0 {
+        factors.push(Integer::from(2));
+    }
+
+    if x.clone() % 5 == 0 {
+        factors.push(Integer::from(2));
+    }
+
+    let mut xx = x.clone();
+
+    let x_ = xx.as_raw_mut();
+    let p_ = p.as_raw_mut();
+    let a_ = a.as_raw_mut();
+    let stop_ = stop.as_raw_mut();
+
+    unsafe {
+        let mut g = || {
+            gmp::mpz_mod(a_, x_, p_);
+            if gmp::mpz_cmp_ui(a_, 0) == 0 {
+                factors.push(p.clone());
+                factors.push(x.clone() / p.clone());
+            }
+        };
+
+        loop {
+            gmp::mpz_add_ui(p_, p_, 2);
+            g();
+            if gmp::mpz_cmp(p_, stop_) > 0 {
+                break;
+            }
+
+            gmp::mpz_add_ui(p_, p_, 4);
+            g();
+            if gmp::mpz_cmp(p_, stop_) > 0 {
+                break;
+            }
+
+            gmp::mpz_add_ui(p_, p_, 2);
+            g();
+            if gmp::mpz_cmp(p_, stop_) > 0 {
+                break;
+            }
+        }
+    };
+
+    factors.push(Integer::from(1));
+    factors.push(x.clone());
+    factors.sort();
+
+    factors
+}
 
 pub fn prime_factorization_brute_force(x: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
@@ -89,6 +148,92 @@ pub fn prime_factorization_fermats(n: Integer) -> Vec<Integer> {
 
     factors.push(Integer::from(&a - Integer::from(b2.sqrt_ref())));
     factors.push(Integer::from(&a + Integer::from(b2.sqrt_ref())));
+
+    factors.sort();
+
+    factors
+}
+
+pub fn prime_factorization_pollard_renan(n: Integer) -> Vec<Integer> {
+    let mut factors: Vec<Integer> = Vec::new();
+
+    factors.push(Integer::from(1));
+    factors.push(n.clone());
+
+    fn pollard_rho_step(n: Integer, k: Integer) -> (Integer, Integer) {
+        let _visited: HashMap<Integer, bool> = HashMap::new();
+
+        let mut s = n.significant_bits() / 2;
+
+        if s <= 2 {
+            s = n.significant_bits() / 2;
+        }
+
+        let one = Integer::from(1);
+        let mut x = get_number_with_n_bits(s as i64);
+        let mut y = x.clone();
+        let mut d: Integer = Integer::from(1);
+
+        let mut kk = k.clone();
+        let mut nn = n.clone();
+
+        let _x = x.as_raw_mut();
+        let _y = y.as_raw_mut();
+        let _k = kk.as_raw_mut();
+        let _d = d.as_raw_mut();
+        let _n = nn.as_raw_mut();
+
+        unsafe {
+            while gmp::mpz_cmp_ui(_d, 1) == 0 {
+                gmp::mpz_pow_ui(_x, _x, 2);
+                gmp::mpz_add(_x, _x, _k);
+                gmp::mpz_mod(_x, _x, _n);
+
+                gmp::mpz_pow_ui(_y, _y, 2);
+                gmp::mpz_add(_y, _y, _k);
+                gmp::mpz_mod(_y, _y, _n);
+
+                gmp::mpz_pow_ui(_y, _y, 2);
+                gmp::mpz_add(_y, _y, _k);
+                gmp::mpz_mod(_y, _y, _n);
+
+                gmp::mpz_sub(_d, _x, _y);
+                gmp::mpz_abs(_d, _d);
+                gmp::mpz_gcd(_d, _d, _n);
+            }
+        }
+
+        if d == n {
+            return (one, n.clone());
+        } else {
+            return (d.clone(), n.clone() / d.clone());
+        }
+    }
+
+    let mut i = 1;
+    while factors.len() < 4 {
+        let x = if i % 2 == 0 {
+            Integer::from(i / 2)
+        } else {
+            get_number_with_n_bits(5_i64)
+        };
+
+        let (p, q) = pollard_rho_step(n.clone(), x);
+
+        if !factors.contains(&p) {
+            factors.push(p.clone());
+
+            if p == q.clone() {
+                factors.push(q.clone());
+            }
+        }
+
+        if !factors.contains(&q) {
+            factors.push(q);
+        }
+
+        i += 1;
+    }
 
     factors.sort();
 
