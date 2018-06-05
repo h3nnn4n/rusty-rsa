@@ -37,7 +37,8 @@ pub fn decrypt_file(path: String, out: String, priv_key: (Integer, Integer), n_b
 pub fn encrypt_file(path: String, out: String, pub_key: (Integer, Integer), n_bits: i64) {
     let mut file = File::open(path).unwrap();
     let mut out_file = File::create(out).unwrap();
-    let n_bytes = n_bits / 8;
+    let mut n_bytes = n_bits / 16;
+    n_bytes = if n_bytes < 1 { 1 } else { n_bytes };
 
     assert!(n_bytes > 0);
 
