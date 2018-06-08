@@ -2,6 +2,35 @@
 extern crate rand;
 use self::rand::Rng;
 
+pub fn prime_factorization_brute_force(x: i64) -> Vec<i64> {
+    let mut factors: Vec<i64> = Vec::new();
+    let mut p = 3;
+    let stop = (x as f64).sqrt() as i64;
+
+    if x % 2 == 0 {
+        factors.push(2);
+    }
+
+    loop {
+        if x % p == 0 {
+            factors.push(p);
+            factors.push(x / p);
+        }
+
+        p = &p + 2;
+
+        if p > stop {
+            break;
+        }
+    }
+
+    factors.push(1);
+    factors.push(x);
+    factors.sort();
+
+    factors
+}
+
 pub fn ninja_factor(n: i64) -> (i64, i64) {
     let mut s = 0;
     let mut d = n - 1;
@@ -81,6 +110,21 @@ pub fn count_primes(upper: i64) -> i64 {
     total
 }
 
+pub fn get_prime_with_n_bits(n_bits: i64) -> i64 {
+    let mut rng = rand::thread_rng();
+
+    let upper = (2_f64.powi(n_bits as i32 + 1_i32) - 1.0) as i64;
+    let lower = 2_f64.powi(n_bits as i32) as i64;
+
+    loop {
+        let n = rng.gen_range(lower, upper);
+
+        if is_prime(n, 20) {
+            return n;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,5 +147,21 @@ mod tests {
     #[test]
     fn primes_less_than_10000() {
         assert!(count_primes(10000) == 1229);
+    }
+
+    #[test]
+    fn brute_force_factorization() {
+        for _ in 0..10 {
+            let n = get_prime_with_n_bits(4);
+            let m = get_prime_with_n_bits(4);
+
+            let p = m * n;
+
+            let mut q = vec![1, m, n, p];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_brute_force(p), q);
+        }
     }
 }
