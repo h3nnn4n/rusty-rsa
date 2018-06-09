@@ -65,8 +65,13 @@ pub fn prime_factorization_fermats(n: i64) -> Vec<i64> {
         !perfect_square
     } {}
 
-    factors.push(a - ((b2 as f64).sqrt() as i64));
-    factors.push(a + ((b2 as f64).sqrt() as i64));
+    if n == ((n as f64).sqrt() as i64).pow(2) {
+        factors.push((n as f64).sqrt() as i64);
+        factors.push((n as f64).sqrt() as i64);
+    } else {
+        factors.push(a - ((b2 as f64).sqrt() as i64));
+        factors.push(a + ((b2 as f64).sqrt() as i64));
+    }
 
     factors.sort();
 
