@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 extern crate rand;
 use self::rand::Rng;
+use lenstra;
 
 fn gcd(m: i64, n: i64) -> i64 {
     if m == 0 {
@@ -122,6 +123,30 @@ pub fn prime_factorization_pollard_rho(n: i64) -> Vec<i64> {
 
     factors.sort();
 
+    factors
+}
+
+pub fn prime_factorization_lenstra(n: i64) -> Vec<i64> {
+    let mut factors: Vec<i64> = Vec::new();
+
+    factors.push(1);
+    factors.push(n);
+
+    while {
+        let q = match lenstra::lenstra(n, 1000) {
+            Some(m) => m,
+            None => 1,
+        };
+
+        if !factors.contains(&q) {
+            factors.push(q);
+            factors.push(n / q);
+        }
+
+        factors.len() < 4 || q == n / q
+    } {}
+
+    factors.sort();
     factors
 }
 
@@ -259,6 +284,22 @@ mod tests {
     }
 
     #[test]
+    fn lenstra_factorization() {
+        for _ in 0..10 {
+            let n = get_prime_with_n_bits(7);
+            let m = get_prime_with_n_bits(7);
+
+            let p = m * n;
+
+            let mut q = vec![1, m, n, p];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_lenstra(p), q);
+        }
+    }
+
+    #[test]
     fn fermats_factorization() {
         for _ in 0..10 {
             let n = get_prime_with_n_bits(10);
@@ -271,6 +312,21 @@ mod tests {
             q.sort();
 
             assert_eq!(prime_factorization_fermats(p), q);
+        }
+    }
+
+    #[test]
+    fn lenstra_factorization_equals_pollard_rho() {
+        for _ in 0..10 {
+            let n = get_prime_with_n_bits(7);
+            let m = get_prime_with_n_bits(7);
+
+            let p = m * n;
+
+            assert_eq!(
+                prime_factorization_lenstra(p),
+                prime_factorization_pollard_rho(p)
+            );
         }
     }
 
