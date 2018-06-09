@@ -2,6 +2,14 @@
 extern crate rand;
 use self::rand::Rng;
 
+fn gcd(m: i64, n: i64) -> i64 {
+    if m == 0 {
+        n.abs()
+    } else {
+        gcd(n % m, m)
+    }
+}
+
 pub fn prime_factorization_brute_force(x: i64) -> Vec<i64> {
     let mut factors: Vec<i64> = Vec::new();
     let mut p = 3;
@@ -31,6 +39,92 @@ pub fn prime_factorization_brute_force(x: i64) -> Vec<i64> {
     factors
 }
 
+pub fn prime_factorization_fermats(n: i64) -> Vec<i64> {
+    let mut factors: Vec<i64> = Vec::new();
+
+    assert!(
+        n % 2 != 0,
+        "Fermat's factorization only works with odd numbers"
+    );
+
+    factors.push(1);
+    factors.push(n);
+
+    let mut a = (n as f64).sqrt() as i64;
+    let mut b2;
+
+    let mut perfect_square;
+
+    while {
+        a += 1;
+        b2 = a.pow(2) - n;
+
+        perfect_square = b2 == ((b2 as f64).sqrt() as i64).pow(2);
+
+        !perfect_square
+    } {}
+
+    factors.push(a - ((b2 as f64).sqrt() as i64));
+    factors.push(a + ((b2 as f64).sqrt() as i64));
+
+    factors.sort();
+
+    factors
+}
+
+pub fn prime_factorization_pollard_rho(n: i64) -> Vec<i64> {
+    let mut factors: Vec<i64> = Vec::new();
+    let mut rng = rand::thread_rng();
+
+    factors.push(1);
+    factors.push(n);
+
+    fn pollard_rho_step(n: i64, k: i64) -> (i64, i64) {
+        let mut rng = rand::thread_rng();
+        let mut x = rng.gen_range(1, n - 1);
+        let mut y = x;
+        let mut d: i64;
+        let g = |x: i64| (x.pow(2) + k) % n;
+
+        while {
+            x = g(x);
+            y = g(g(y));
+
+            d = gcd((x - y).abs(), n);
+
+            d == 1
+        } {}
+
+        if d == n {
+            return (1, n);
+        } else {
+            return (d, n / d);
+        }
+    }
+
+    while factors.len() < 4 {
+        let x = rng.gen_range(1, n);
+
+        let (p, q) = pollard_rho_step(n, x);
+
+        if !factors.contains(&p) {
+            factors.push(p);
+
+            if p == q {
+                factors.push(q);
+            }
+        }
+
+        if !factors.contains(&q) {
+            factors.push(q);
+        }
+    }
+
+    factors.sort();
+
+    factors
+}
+
 pub fn ninja_factor(n: i64) -> (i64, i64) {
     let mut s = 0;
     let mut d = n - 1;
@@ -40,7 +134,6 @@ pub fn ninja_factor(n: i64) -> (i64, i64) {
         s += 1;
     }
 
-    assert_eq!(2_i64.pow(s as u32) * d, n - 1);
     (s, d)
 }
 
@@ -147,6 +240,68 @@ mod tests {
     #[test]
     fn primes_less_than_10000() {
         assert!(count_primes(10000) == 1229);
+    }
+
+    #[test]
+    fn pollard_rho_factorization() {
+        for _ in 0..10 {
+            let n = get_prime_with_n_bits(10);
+            let m = get_prime_with_n_bits(10);
+
+            let p = m * n;
+
+            let mut q = vec![1, m, n, p];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_pollard_rho(p), q);
+        }
+    }
+
+    #[test]
+    fn fermats_factorization() {
+        for _ in 0..10 {
+            let n = get_prime_with_n_bits(10);
+            let m = get_prime_with_n_bits(10);
+
+            let p = m * n;
+
+            let mut q = vec![1, m, n, p];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_fermats(p), q);
+        }
+    }
+
+    #[test]
+    fn fermats_factorization_equals_pollard_rho() {
+        for _ in 0..10 {
+            let n = get_prime_with_n_bits(10);
+            let m = get_prime_with_n_bits(10);
+
+            let p = m * n;
+
+            assert_eq!(
+                prime_factorization_fermats(p),
+                prime_factorization_pollard_rho(p)
+            );
+        }
+    }
+
+    #[test]
+    fn fermats_factorization_equals_brute_force() {
+        for _ in 0..10 {
+            let n = get_prime_with_n_bits(10);
+            let m = get_prime_with_n_bits(10);
+
+            let p = m * n;
+
+            assert_eq!(
+                prime_factorization_fermats(p),
+                prime_factorization_brute_force(p)
+            );
+        }
     }
 
     #[test]
