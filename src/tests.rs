@@ -99,6 +99,15 @@ mod tests {
     }
 
     #[test]
+    fn prime_sieve() {
+        let primes = lenstra::primes(1000);
+
+        for &p in primes.iter() {
+            assert!(primes::is_prime(p, 20));
+        }
+    }
+
+    #[test]
     fn power() {
         let mut rng = rand::thread_rng();
         for _ in 0..10 {

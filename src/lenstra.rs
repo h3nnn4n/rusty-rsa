@@ -87,7 +87,7 @@ pub fn elliptic_mul(mut k: i64, mut p: (i64, i64, i64), a: i64, b: i64, m: i64) 
     r
 }
 
-fn primes(limit: usize) -> Vec<i64> {
+pub fn primes(limit: usize) -> Vec<i64> {
     let max = (1.0 + limit as f64 / (limit as f64).ln()) as usize;
     let mut prime_list: Vec<i64> = Vec::new();
     let mut primes = Vec::with_capacity(max as usize);
