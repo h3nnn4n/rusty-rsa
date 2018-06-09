@@ -17,7 +17,7 @@ fn main() {
         .arg(
             Arg::with_name("INPUT")
                 .help("Sets the input file to use")
-                .required_unless_one(&["GEN", "BRUTE_RAW", "BRUTE", "POLLARD", "POLLARD_RAW", "FERMAT", "FERMAT_RAW", "LENSTRA"])
+                .required_unless_one(&["GEN", "BRUTE", "BRUTE_RAW", "POLLARD", "POLLARD_RAW", "FERMAT", "FERMAT_RAW", "LENSTRA"])
                 .index(1),
         )
         .arg(
@@ -60,43 +60,43 @@ fn main() {
         .arg(
             Arg::with_name("BRUTE")
                 .long("--bruteforce")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "POLLARD"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN"])
                 .help("Breaks a public key using simple and dumb factorization"),
         )
         .arg(
             Arg::with_name("BRUTE_RAW")
                 .long("--bruteforce_raw")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "POLLARD", "BRUTE"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE"])
                 .help("Breaks a public key using simple and (not so) dumb factorization with an unsafe implementation"),
         )
         .arg(
             Arg::with_name("POLLARD")
                 .long("--pollardrho")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "BRUTE_RAW"])
                 .help("Breaks a public key using pollard-rho heuristic"),
         )
         .arg(
             Arg::with_name("POLLARD_RAW")
                 .long("--pollardrho_raw")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE","BRUTE_RAW", "POLLARD"])
                 .help("Breaks a public key using pollard-rho heuristic with an usafe implementation"),
         )
         .arg(
             Arg::with_name("FERMAT")
                 .long("--fermat")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "BRUTE_RAW", "POLLARD", "POLLARD_RAW"])
                 .help("Breaks a public key using Fermat's factorization"),
         )
         .arg(
             Arg::with_name("FERMAT_RAW")
                 .long("--fermat_raw")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD", "FERMAT", "POLLARD_RAW", "FERMAT_RAW"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "BRUTE_RAW", "POLLARD", "POLLARD_RAW", "FERMAT"])
                 .help("Breaks a public key using Fermat's factorization with an unsafe implementation"),
         )
         .arg(
             Arg::with_name("LENSTRA")
                 .long("--lenstra")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "FERMAT_RAW"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "BRUTE_RAW", "POLLARD", "POLLARD_RAW", "FERMAT", "FERMAT_RAW"])
                 .help("Breaks a public key using Lenstra's factorization"),
         )
         .get_matches();
