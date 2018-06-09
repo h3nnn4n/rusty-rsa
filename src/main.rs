@@ -2,6 +2,7 @@ extern crate clap;
 
 use clap::{App, Arg};
 use std::time::Instant;
+mod big_lenstra;
 mod big_primes;
 mod lenstra;
 mod primes;

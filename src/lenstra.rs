@@ -16,7 +16,7 @@ fn divmod(a: i64, b: i64) -> (i64, i64) {
     (q, r)
 }
 
-fn modular_inv(a: i64, b: i64) -> (i64, i64, i64) {
+pub fn modular_inv(a: i64, b: i64) -> (i64, i64, i64) {
     if b == 0 {
         return (1, 0, a);
     }
@@ -27,7 +27,7 @@ fn modular_inv(a: i64, b: i64) -> (i64, i64, i64) {
     (x, x - q * y, g)
 }
 
-fn elliptic_add(
+pub fn elliptic_add(
     p: (i64, i64, i64),
     q: (i64, i64, i64),
     a: i64,
