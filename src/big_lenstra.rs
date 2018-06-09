@@ -169,21 +169,14 @@ mod tests {
 
     #[test]
     fn lenstra() {
-        for _ in 0..1 {
-            let mut b = 0;
+        for _ in 0..10 {
             loop {
-                if b > 10 {
-                    assert!(false);
-                }
-
-                b += 1;
-
-                let p = big_primes::get_number_with_n_bits(4);
-                let q = big_primes::get_number_with_n_bits(10);
+                let p = big_primes::get_prime_with_n_bits(15);
+                let q = big_primes::get_prime_with_n_bits(10);
 
                 let n = Integer::from(&p * &q);
 
-                let f = super::lenstra(n.clone(), Integer::from(1000));
+                let f = super::lenstra(n.clone(), Integer::from(2000));
 
                 let found = match f {
                     Some(_) => true,
@@ -193,9 +186,7 @@ mod tests {
                 if found {
                     let w = f.unwrap();
 
-                    println!("{:?} {:?} {:?} {:?}", w, p, q, n);
-
-                    if w.is_even() {
+                    if w > 1 {
                         assert!(
                             w.clone() == p.clone() || w.clone() == q.clone(),
                             "{:?} {:?} {:?} {:?}",
