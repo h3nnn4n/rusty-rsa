@@ -170,12 +170,12 @@ mod tests {
     #[test]
     fn lenstra() {
         for _ in 0..10 {
+            let p = big_primes::get_prime_with_n_bits(15);
+            let q = big_primes::get_prime_with_n_bits(10);
+
+            let n = Integer::from(&p * &q);
+
             loop {
-                let p = big_primes::get_prime_with_n_bits(15);
-                let q = big_primes::get_prime_with_n_bits(10);
-
-                let n = Integer::from(&p * &q);
-
                 let f = super::lenstra(n.clone(), Integer::from(2000));
 
                 let found = match f {
