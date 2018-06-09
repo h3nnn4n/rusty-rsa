@@ -63,7 +63,7 @@ mod tests {
     fn count_primes() {
         let mut rng = rand::thread_rng();
         for _ in 0..10 {
-            let n = rng.gen_range(2, 10000);
+            let n = rng.gen_range(2, 1000);
             assert_eq!(big_primes::count_primes(n), primes::count_primes(n));
         }
     }
