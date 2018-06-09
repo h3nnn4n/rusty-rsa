@@ -344,7 +344,6 @@ mod tests {
     macro_rules! enc_dec_file {
     ($($name:ident: $value:expr,)*) => { $(
         #[test]
-        #[ignore]
         fn $name() {
             let n = $value;
             for _ in 0..5 {
@@ -375,7 +374,6 @@ mod tests {
     macro_rules! enc_dec_int {
     ($($name:ident: $value:expr,)*) => { $(
         #[test]
-        #[ignore]
         fn $name() {
             let n = $value;
             for _ in 0..5 {

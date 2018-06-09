@@ -14,16 +14,18 @@ use big_lenstra;
 
 pub fn prime_factorization_brute_force_raw(x: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
-    let mut p = Integer::new();
+    let mut p = Integer::from(1);
     let mut a = Integer::new();
     let mut stop = Integer::from(x.clone().sqrt());
 
     if x.clone() % 2 == 0 {
         factors.push(Integer::from(2));
+        factors.push(x.clone() / Integer::from(2));
     }
 
     if x.clone() % 5 == 0 {
-        factors.push(Integer::from(2));
+        factors.push(Integer::from(5));
+        factors.push(x.clone() / Integer::from(5));
     }
 
     let mut xx = x.clone();
@@ -37,8 +39,10 @@ pub fn prime_factorization_brute_force_raw(x: Integer) -> Vec<Integer> {
         let mut g = || {
             gmp::mpz_mod(a_, x_, p_);
             if gmp::mpz_cmp_ui(a_, 0) == 0 {
-                factors.push(p.clone());
-                factors.push(x.clone() / p.clone());
+                if !factors.contains(&p) {
+                    factors.push(p.clone());
+                    factors.push(x.clone() / p.clone());
+                }
             }
         };
 
@@ -50,6 +54,12 @@ pub fn prime_factorization_brute_force_raw(x: Integer) -> Vec<Integer> {
             }
 
             gmp::mpz_add_ui(p_, p_, 4);
+            g();
+            if gmp::mpz_cmp(p_, stop_) > 0 {
+                break;
+            }
+
+            gmp::mpz_add_ui(p_, p_, 2);
             g();
             if gmp::mpz_cmp(p_, stop_) > 0 {
                 break;
@@ -587,13 +597,11 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn primes_less_than_1000() {
         assert!(count_primes(1000) == 168);
     }
 
     #[test]
-    #[ignore]
     fn primes_less_than_10000() {
         assert!(count_primes(10000) == 1229);
     }
@@ -662,11 +670,25 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    fn lenstra_factorization_equals_pollard_rho() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(10);
+            let n = get_prime_with_n_bits(10);
+
+            let p = Integer::from(&m * &n);
+
+            assert_eq!(
+                prime_factorization_pollard_rho(p.clone()),
+                prime_factorization_lenstra(p)
+            );
+        }
+    }
+
+    #[test]
     fn lenstra_factorization() {
         for _ in 0..10 {
-            let m = get_prime_with_n_bits(20);
-            let n = get_prime_with_n_bits(20);
+            let m = get_prime_with_n_bits(10);
+            let n = get_prime_with_n_bits(10);
 
             let p = Integer::from(&m * &n);
 
@@ -705,6 +727,21 @@ mod tests {
             assert_eq!(
                 prime_factorization_fermats(p.clone()),
                 prime_factorization_fermats_raw(p)
+            );
+        }
+    }
+
+    #[test]
+    fn pollard_rho_equals_brute_raw() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(6);
+            let n = get_prime_with_n_bits(6);
+
+            let p = Integer::from(&m * &n);
+
+            assert_eq!(
+                prime_factorization_brute_force_raw(p.clone()),
+                prime_factorization_pollard_rho(p)
             );
         }
     }
