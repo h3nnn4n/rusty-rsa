@@ -10,10 +10,6 @@ mod rsa;
 mod tests;
 
 fn main() {
-    let k = big_lenstra::test_lenstra();
-    println!("{:?} {:?}", k.0, k.1);
-    return;
-
     let matches = App::new("Rusty Rsa")
         .version("0.1")
         .author("Renan S Silva <uber.renan@gmail.com>")
@@ -21,7 +17,7 @@ fn main() {
         .arg(
             Arg::with_name("INPUT")
                 .help("Sets the input file to use")
-                .required_unless_one(&["GEN", "BRUTE_RAW", "BRUTE", "POLLARD", "POLLARD_RAW", "FERMAT", "FERMAT_RAW"])
+                .required_unless_one(&["GEN", "BRUTE_RAW", "BRUTE", "POLLARD", "POLLARD_RAW", "FERMAT", "FERMAT_RAW", "LENSTRA"])
                 .index(1),
         )
         .arg(
@@ -94,8 +90,14 @@ fn main() {
         .arg(
             Arg::with_name("FERMAT_RAW")
                 .long("--fermat_raw")
-                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD", "FERMAT"])
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "POLLARD", "FERMAT", "POLLARD_RAW", "FERMAT_RAW"])
                 .help("Breaks a public key using Fermat's factorization with an unsafe implementation"),
+        )
+        .arg(
+            Arg::with_name("LENSTRA")
+                .long("--lenstra")
+                .conflicts_with_all(&["ENCRYPT", "DECRYPT", "GEN", "BRUTE", "FERMAT_RAW"])
+                .help("Breaks a public key using Lenstra's factorization"),
         )
         .get_matches();
 
@@ -167,8 +169,9 @@ fn main() {
     let pollard_raw = matches.is_present("POLLARD_RAW");
     let fermat = matches.is_present("FERMAT");
     let fermat_raw = matches.is_present("FERMAT_RAW");
+    let lenstra = matches.is_present("LENSTRA");
 
-    if brute || brute_raw || pollard || pollard_raw || fermat || fermat_raw {
+    if brute || brute_raw || pollard || pollard_raw || fermat || fermat_raw || lenstra {
         let (_, modulus) = rsa::get_key_from_file(key_file_name.clone());
 
         let t_start = Instant::now();
@@ -184,6 +187,8 @@ fn main() {
             big_primes::prime_factorization_brute_force(modulus)
         } else if brute_raw {
             big_primes::prime_factorization_brute_force_raw(modulus)
+        } else if lenstra {
+            big_primes::prime_factorization_lenstra(modulus)
         } else {
             unreachable!();
         };
