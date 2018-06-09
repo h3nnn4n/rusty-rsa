@@ -66,3 +66,31 @@ pub fn elliptic_add(
         Integer::from(1),
     )
 }
+
+pub fn elliptic_mul(
+    k_: Integer,
+    p_: (Integer, Integer, Integer),
+    a: Integer,
+    b: Integer,
+    m: Integer,
+) -> (Integer, Integer, Integer) {
+    let mut r = (Integer::from(0), Integer::from(1), Integer::from(0));
+
+    let mut k = k_.clone();
+    let mut p = p_.clone();
+
+    while k > 0 {
+        if p.2 > 1 {
+            return p;
+        }
+
+        if k.is_odd() {
+            r = elliptic_add(p.clone(), r, a.clone(), b.clone(), m.clone());
+        }
+
+        k = Integer::from(&k / &Integer::from(2));
+        p = elliptic_add(p.clone(), p.clone(), a.clone(), b.clone(), m.clone());
+    }
+
+    r
+}

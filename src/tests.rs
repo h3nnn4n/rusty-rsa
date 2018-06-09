@@ -65,6 +65,36 @@ mod tests {
                 Integer::from(0),
                 Integer::from(n),
             );
+
+            assert_eq!(x.0, y.0);
+            assert_eq!(x.1, y.1);
+            assert_eq!(x.2, y.2);
+        }
+    }
+
+    #[test]
+    fn elliptic_mul() {
+        let mut rng = rand::thread_rng();
+
+        for _ in 0..50 {
+            let n = rng.gen_range(100, 1000);
+            let p = (rng.gen_range(0, n - 1), rng.gen_range(0, n - 1), 1);
+            let q = rng.gen_range(0, n - 1);
+            let p_ = (Integer::from(p.0), Integer::from(p.1), Integer::from(p.2));
+            let a = rng.gen_range(0, n - 1);
+
+            let x = lenstra::elliptic_mul(q, p, a, 0, n);
+            let y = big_lenstra::elliptic_mul(
+                Integer::from(q),
+                p_,
+                Integer::from(a),
+                Integer::from(0),
+                Integer::from(n),
+            );
+
+            assert_eq!(x.0, y.0);
+            assert_eq!(x.1, y.1);
+            assert_eq!(x.2, y.2);
         }
     }
 

@@ -68,7 +68,7 @@ pub fn elliptic_add(
     (z, (num * inv * (p.0 - z) - p.1) % m, 1)
 }
 
-fn elliptic_mul(mut k: i64, mut p: (i64, i64, i64), a: i64, b: i64, m: i64) -> (i64, i64, i64) {
+pub fn elliptic_mul(mut k: i64, mut p: (i64, i64, i64), a: i64, b: i64, m: i64) -> (i64, i64, i64) {
     let mut r = (0, 1, 0);
 
     while k > 0 {
