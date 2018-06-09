@@ -10,6 +10,8 @@ use self::rug::rand::RandState;
 use self::rug::Integer;
 use std::collections::HashMap;
 
+use big_lenstra;
+
 pub fn prime_factorization_brute_force_raw(x: Integer) -> Vec<Integer> {
     let mut factors: Vec<Integer> = Vec::new();
     let mut p = Integer::new();
@@ -396,6 +398,30 @@ pub fn prime_factorization_pollard_rho(n: Integer) -> Vec<Integer> {
     factors
 }
 
+pub fn prime_factorization_lenstra(n: Integer) -> Vec<Integer> {
+    let mut factors: Vec<Integer> = Vec::new();
+
+    factors.push(Integer::from(1));
+    factors.push(n.clone());
+
+    while {
+        let q = match big_lenstra::lenstra(n.clone(), Integer::from(1000)) {
+            Some(m) => m,
+            None => Integer::from(1),
+        };
+
+        if !factors.contains(&q) {
+            factors.push(q.clone());
+            factors.push(n.clone() / q.clone());
+        }
+
+        factors.len() < 4 || q == Integer::from(&n / &q)
+    } {}
+
+    factors.sort();
+    factors
+}
+
 pub fn get_number_with_n_bits(n_bits: i64) -> Integer {
     let consonants = b"01";
     let value: Integer;
@@ -561,11 +587,13 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn primes_less_than_1000() {
         assert!(count_primes(1000) == 168);
     }
 
     #[test]
+    #[ignore]
     fn primes_less_than_10000() {
         assert!(count_primes(10000) == 1229);
     }
@@ -630,6 +658,23 @@ mod tests {
             q.sort();
 
             assert_eq!(prime_factorization_fermats_raw(p), q);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn lenstra_factorization() {
+        for _ in 0..10 {
+            let m = get_prime_with_n_bits(20);
+            let n = get_prime_with_n_bits(20);
+
+            let p = Integer::from(&m * &n);
+
+            let mut q = vec![Integer::from(1), m, n, p.clone()];
+
+            q.sort();
+
+            assert_eq!(prime_factorization_lenstra(p), q);
         }
     }
 

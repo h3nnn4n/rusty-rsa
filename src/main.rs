@@ -10,6 +10,10 @@ mod rsa;
 mod tests;
 
 fn main() {
+    let k = big_lenstra::test_lenstra();
+    println!("{:?} {:?}", k.0, k.1);
+    return;
+
     let matches = App::new("Rusty Rsa")
         .version("0.1")
         .author("Renan S Silva <uber.renan@gmail.com>")

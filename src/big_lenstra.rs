@@ -10,6 +10,8 @@ use self::rug::rand::RandState;
 use self::rug::Integer;
 use std::collections::HashMap;
 
+use big_primes;
+
 pub fn modular_inv(a: Integer, b: Integer) -> (Integer, Integer, Integer) {
     if b == 0 {
         return (Integer::from(1), Integer::from(0), a);
@@ -93,4 +95,120 @@ pub fn elliptic_mul(
     }
 
     r
+}
+
+pub fn lenstra(n: Integer, limit: Integer) -> Option<Integer> {
+    let mut g = n.clone();
+    let mut rng = rand::thread_rng();
+
+    let mut q = (Integer::new(), Integer::new(), Integer::new());
+    let mut a = Integer::new();
+    let mut b = Integer::new();
+
+    let n_f64 = n.to_f64();
+
+    while g == n {
+        q = (
+            big_primes::get_number_with_n_bits((n_f64).log(2.0) as i64),
+            big_primes::get_number_with_n_bits((n_f64).log(2.0) as i64),
+            big_primes::get_number_with_n_bits((n_f64).log(2.0) as i64),
+        );
+        a = big_primes::get_number_with_n_bits((n_f64).log(2.0) as i64);
+
+        b = (q.1.clone().pow(2) - q.0.clone().pow(3) - a.clone() * q.0.clone()) % n.clone();
+        g = Integer::from(4 * a.clone().pow(3) + 27 * b.clone().pow(2)).gcd(&n);
+    }
+
+    if g > 1 {
+        return Some(g);
+    }
+
+    let mut pp = Integer::from(2);
+    let mut p = Integer::from(0);
+
+    let mut i = Integer::new();
+    let one = Integer::from(1);
+
+    while i < limit {
+        i = Integer::from(&i + &one);
+        p = p.next_prime();
+        pp = p.clone();
+
+        while pp < limit {
+            q = elliptic_mul(p.clone(), q.clone(), a.clone(), b.clone(), n.clone());
+
+            if q.2 > 1 {
+                return Some(q.2.gcd(&n));
+            }
+
+            pp *= p.clone();
+        }
+    }
+
+    None
+}
+
+pub fn test_lenstra() -> (Integer, Integer) {
+    let n = Integer::from(1271);
+
+    let mut p = lenstra(n.clone(), Integer::from(1000));
+
+    while match p {
+        None => true,
+        _ => false,
+    } {
+        p = lenstra(n.clone(), Integer::from(1000));
+    }
+
+    (n.clone(), p.unwrap())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lenstra() {
+        for _ in 0..1 {
+            let mut b = 0;
+            loop {
+                if b > 10 {
+                    assert!(false);
+                }
+
+                b += 1;
+
+                let p = big_primes::get_number_with_n_bits(4);
+                let q = big_primes::get_number_with_n_bits(10);
+
+                let n = Integer::from(&p * &q);
+
+                let f = super::lenstra(n.clone(), Integer::from(1000));
+
+                let found = match f {
+                    Some(_) => true,
+                    None => false,
+                };
+
+                if found {
+                    let w = f.unwrap();
+
+                    println!("{:?} {:?} {:?} {:?}", w, p, q, n);
+
+                    if w.is_even() {
+                        assert!(
+                            w.clone() == p.clone() || w.clone() == q.clone(),
+                            "{:?} {:?} {:?} {:?}",
+                            w,
+                            p,
+                            q,
+                            n
+                        );
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
